@@ -4,50 +4,57 @@
  * Layer order:
  *  1. Tailwind CSS v4 base
  *  2. Animation utilities (tw-animate-css)
- *  3. Shadcn/base-nova token layer (used only by admin UI components)
+ *  3. Shadcn/base-nova token layer (used by admin UI components)
  *  4. Portfolio design token overrides (tokens.css)
  *  5. Typography scale (typography.css)
- *
- * NOTE: The `@import` of `shadcn/tailwind.css` is kept intentionally — it
- * provides CSS custom properties consumed by shadcn UI components used in the
- * admin dashboard. The public portfolio uses its own design tokens below.
  */
 
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../frontend/styles/tokens.css";
+@import "../frontend/styles/typography.css";
 
-/* ─── Portfolio design tokens ──────────────────────────────────────────────
-   These override / extend the Tailwind / shadcn defaults for the public
-   portfolio. Full token set will be expanded in Task 1.5 (Design Tokens).   */
-
+/* ─── Tailwind CSS v4 Theme Mapping ───────────────────────────────────────── */
 @theme inline {
-  /* ── Colors ── */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* ── Color Palette ── */
+  --color-surface:        var(--color-surface);
+  --color-amber:          var(--color-amber);
 
-  /* ── Portfolio accent ── */
-  --color-amber:        #FFAA00;
-  --color-amber-dim:    color-mix(in srgb, #FFAA00 60%, transparent);
-  --color-amber-faint:  color-mix(in srgb, #FFAA00 30%, transparent);
+  --color-amber-90:       var(--color-amber-90);
+  --color-amber-70:       var(--color-amber-70);
+  --color-amber-50:       var(--color-amber-50);
+  --color-amber-30:       var(--color-amber-30);
+  --color-amber-20:       var(--color-amber-20);
+  --color-amber-15:       var(--color-amber-15);
+  --color-amber-08:       var(--color-amber-08);
 
-  /* ── Surface ── */
-  --color-surface:      #050505;
-  --color-surface-02:   color-mix(in srgb, #ffffff 2%, #050505);
-  --color-surface-05:   color-mix(in srgb, #ffffff 5%, #050505);
+  --color-white-90:       var(--color-white-90);
+  --color-white-70:       var(--color-white-70);
+  --color-white-50:       var(--color-white-50);
+  --color-white-35:       var(--color-white-35);
+  --color-white-20:       var(--color-white-20);
+  --color-white-10:       var(--color-white-10);
+  --color-white-05:       var(--color-white-05);
 
-  /* ── Fonts (variables injected by Next.js font loader in layout.tsx) ── */
-  --font-sans:    var(--font-geist-sans);
-  --font-mono:    var(--font-geist-mono);
-  --font-display: var(--font-display); /* will be set in Task 1.3 */
+  /* ── Typography Fonts ── */
+  --font-sans:            var(--font-geist-sans);
+  --font-mono:            var(--font-geist-mono);
+  --font-display:         var(--font-display, var(--font-geist-sans));
 
-  /* ── Shadcn radius (kept for admin UI compat) ── */
-  --radius-sm:  calc(var(--radius) * 0.6);
-  --radius-md:  calc(var(--radius) * 0.8);
-  --radius-lg:  var(--radius);
+  /* ── Z-Index Layers ── */
+  --z-background:         var(--z-background);
+  --z-noise:              var(--z-noise);
+  --z-scanlines:          var(--z-scanlines);
+  --z-content:            var(--z-content);
+  --z-navigation:         var(--z-navigation);
+  --z-overlays:           var(--z-overlays);
+  --z-flashlight:         var(--z-flashlight);
+  --z-cursor:             var(--z-cursor);
+  --z-modal:              var(--z-modal);
 }
 
-/* ─── Root: shadcn light tokens (admin uses light surfaces) ────────────── */
+/* ─── Root Defaults (Admin UI Compat) ────────────────────────────────────── */
 :root {
   --background:              oklch(1 0 0);
   --foreground:              oklch(0.145 0 0);
@@ -68,34 +75,30 @@
   --input:                   oklch(0.922 0 0);
   --ring:                    oklch(0.708 0 0);
   --radius:                  0.625rem;
-  --sidebar:                 oklch(0.985 0 0);
-  --sidebar-foreground:      oklch(0.145 0 0);
-  --sidebar-primary:         oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent:          oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border:          oklch(0.922 0 0);
-  --sidebar-ring:            oklch(0.708 0 0);
 }
 
-/* ─── Base layer ────────────────────────────────────────────────────────── */
+/* ─── Base Application Reset ──────────────────────────────────────────────── */
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--color-white-10);
     box-sizing: border-box;
   }
 
   html {
     @apply font-sans;
+    background-color: var(--color-surface);
+    color: var(--color-white-90);
     scroll-behavior: smooth;
-    /* Smooth scroll disabled for users who prefer reduced motion */
+
     @media (prefers-reduced-motion: reduce) {
       scroll-behavior: auto;
     }
   }
 
   body {
-    @apply bg-[#050505] text-white;
-    /* Will be replaced with CSS custom properties in Task 1.5 */
+    background-color: var(--color-surface);
+    color: var(--color-white-90);
+    min-height: 100vh;
+    overflow-x: hidden;
   }
 }

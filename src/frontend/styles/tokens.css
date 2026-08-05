@@ -1,96 +1,106 @@
 /*
  * ─── PORTFOLIO DESIGN TOKENS ────────────────────────────────────────────────
  *
- * These CSS custom properties are the single source of truth for the
- * portfolio's visual identity.
+ * Single source of truth for the classified digital system visual identity.
  *
- * Color system: #050505 (surface) + #FFAA00 (amber accent).
- * All opacity variations are derived from these two.
- *
- * Import order: this file is imported AFTER Tailwind and shadcn tokens
- * in globals.css so that these properties are available globally.
- *
- * Full token expansion happens in Task 1.5 (Design Tokens).
+ * Core rule: Monochromatic dark surface (#050505) + Amber accent (#FFAA00).
+ * All text and UI variations are derived through controlled opacities.
  */
 
 :root {
-  /* ── Core colors ───────────────────────────────────────────────────────── */
-  --color-surface:      #050505;
-  --color-amber:        #FFAA00;
+  /* ── Core Brand Palette ──────────────────────────────────────────────────── */
+  --color-surface:        #050505;
+  --color-amber:          #FFAA00;
 
-  /* ── Amber opacity scale ───────────────────────────────────────────────── */
-  --color-amber-90:     color-mix(in srgb, #FFAA00 90%, transparent);
-  --color-amber-70:     color-mix(in srgb, #FFAA00 70%, transparent);
-  --color-amber-50:     color-mix(in srgb, #FFAA00 50%, transparent);
-  --color-amber-30:     color-mix(in srgb, #FFAA00 30%, transparent);
-  --color-amber-15:     color-mix(in srgb, #FFAA00 15%, transparent);
-  --color-amber-08:     color-mix(in srgb, #FFAA00 8%, transparent);
+  /* ── Amber Opacity Scale ─────────────────────────────────────────────────── */
+  --color-amber-90:       rgba(255, 170, 0, 0.90);
+  --color-amber-70:       rgba(255, 170, 0, 0.70);
+  --color-amber-50:       rgba(255, 170, 0, 0.50);
+  --color-amber-30:       rgba(255, 170, 0, 0.30);
+  --color-amber-20:       rgba(255, 170, 0, 0.20);
+  --color-amber-15:       rgba(255, 170, 0, 0.15);
+  --color-amber-08:       rgba(255, 170, 0, 0.08);
 
-  /* ── White opacity scale (text and UI) ────────────────────────────────── */
-  --color-white-90:     rgba(255, 255, 255, 0.90);
-  --color-white-70:     rgba(255, 255, 255, 0.70);
-  --color-white-50:     rgba(255, 255, 255, 0.50);
-  --color-white-30:     rgba(255, 255, 255, 0.30);
-  --color-white-10:     rgba(255, 255, 255, 0.10);
-  --color-white-05:     rgba(255, 255, 255, 0.05);
+  /* ── Neutral Text / UI Opacity Scale (White on #050505) ──────────────────── */
+  --color-white-90:       rgba(255, 255, 255, 0.90); /* Primary text */
+  --color-white-70:       rgba(255, 255, 255, 0.70); /* Secondary text */
+  --color-white-50:       rgba(255, 255, 255, 0.50); /* Muted body / UI */
+  --color-white-35:       rgba(255, 255, 255, 0.35); /* Technical labels / metadata */
+  --color-white-20:       rgba(255, 255, 255, 0.20); /* Subtle borders / separators */
+  --color-white-10:       rgba(255, 255, 255, 0.10); /* Default thin borders */
+  --color-white-05:       rgba(255, 255, 255, 0.05); /* Faint structural elements */
 
-  /* ── Surface variations ────────────────────────────────────────────────── */
-  --color-surface-02:   color-mix(in srgb, #ffffff  2%, #050505);
-  --color-surface-04:   color-mix(in srgb, #ffffff  4%, #050505);
-  --color-surface-08:   color-mix(in srgb, #ffffff  8%, #050505);
-  --color-surface-12:   color-mix(in srgb, #ffffff 12%, #050505);
+  /* ── Surface Layering (Controlled Dark Grays) ────────────────────────────── */
+  --color-surface-02:     color-mix(in srgb, #ffffff 2%, #050505);
+  --color-surface-04:     color-mix(in srgb, #ffffff 4%, #050505);
+  --color-surface-08:     color-mix(in srgb, #ffffff 8%, #050505);
+  --color-surface-12:     color-mix(in srgb, #ffffff 12%, #050505);
 
-  /* ── Border ────────────────────────────────────────────────────────────── */
-  --color-border:       var(--color-white-10);
-  --color-border-amber: var(--color-amber-30);
+  /* ── Precision Borders ──────────────────────────────────────────────────── */
+  --border-subtle:        1px solid var(--color-white-10);
+  --border-subtle-amber:  1px solid var(--color-amber-20);
+  --border-accent-amber:  1px solid var(--color-amber-50);
+  --border-strong-amber:  1px solid var(--color-amber);
 
-  /* ── Spacing scale (editorial, not default Tailwind) ───────────────────── */
-  --space-px:    1px;
-  --space-xs:    0.25rem;   /* 4px  */
-  --space-sm:    0.5rem;    /* 8px  */
-  --space-md:    1rem;      /* 16px */
-  --space-lg:    1.5rem;    /* 24px */
-  --space-xl:    2rem;      /* 32px */
-  --space-2xl:   3rem;      /* 48px */
-  --space-3xl:   4rem;      /* 64px */
-  --space-4xl:   6rem;      /* 96px */
-  --space-5xl:   8rem;      /* 128px */
+  /* ── Systematic Spacing Tokens ───────────────────────────────────────────── */
+  --space-3xs:  0.125rem;  /* 2px */
+  --space-2xs:  0.25rem;   /* 4px */
+  --space-xs:   0.5rem;    /* 8px */
+  --space-sm:   0.75rem;   /* 12px */
+  --space-md:   1rem;      /* 16px */
+  --space-lg:   1.5rem;    /* 24px */
+  --space-xl:   2rem;      /* 32px */
+  --space-2xl:  3rem;      /* 48px */
+  --space-3xl:  4rem;      /* 64px */
+  --space-4xl:  6rem;      /* 96px */
+  --space-5xl:  8rem;      /* 128px */
 
-  /* ── Typography sizes ──────────────────────────────────────────────────── */
-  --text-label:  0.625rem;  /* 10px — technical metadata */
-  --text-xs:     0.75rem;   /* 12px */
-  --text-sm:     0.875rem;  /* 14px */
-  --text-base:   1rem;      /* 16px */
-  --text-lg:     1.125rem;  /* 18px */
-  --text-xl:     1.25rem;   /* 20px */
-  --text-2xl:    1.5rem;    /* 24px */
-  --text-3xl:    2rem;      /* 32px */
-  --text-4xl:    2.5rem;    /* 40px */
-  --text-5xl:    3.5rem;    /* 56px */
-  --text-6xl:    5rem;      /* 80px */
-  --text-7xl:    7rem;      /* 112px — hero name */
+  /* ── Typography Scale ────────────────────────────────────────────────────── */
+  --text-micro:     0.5625rem; /* 9px  — micro stamps / status */
+  --text-meta:      0.6875rem; /* 11px — coordinates / dates */
+  --text-tech:      0.75rem;   /* 12px — technical labels */
+  --text-body-sm:   0.875rem;  /* 14px — small body */
+  --text-body:      1rem;      /* 16px — standard body */
+  --text-h4:        1.25rem;   /* 20px — sub-headers */
+  --text-h3:        1.5rem;    /* 24px — section sub-headings */
+  --text-h2:        2.25rem;   /* 36px — section titles */
+  --text-h1:        3.5rem;    /* 56px — page titles */
+  --text-display:   5.5rem;    /* 88px — hero / dossier display */
+  --text-hero:      7.5rem;    /* 120px — signature name display */
 
-  /* ── Letter spacing ────────────────────────────────────────────────────── */
-  --tracking-label:    0.15em;   /* Technical labels / metadata */
-  --tracking-ui:       0.05em;   /* Navigation, buttons */
-  --tracking-display:  -0.02em;  /* Large display text (name) */
+  /* ── Letter Spacing (Tracking) ───────────────────────────────────────────── */
+  --tracking-micro:     0.2em;   /* System stamps (e.g. CLASSIFIED //) */
+  --tracking-tech:      0.15em;  /* Technical labels & metadata */
+  --tracking-ui:        0.06em;  /* Nav items & buttons */
+  --tracking-body:      0em;     /* Normal body text */
+  --tracking-display:  -0.03em;  /* Editorial display headings */
 
-  /* ── Line heights ──────────────────────────────────────────────────────── */
+  /* ── Line Heights ────────────────────────────────────────────────────────── */
+  --leading-none:    1.0;
   --leading-tight:   1.1;
   --leading-snug:    1.25;
   --leading-normal:  1.5;
   --leading-relaxed: 1.7;
 
-  /* ── Animation durations ───────────────────────────────────────────────── */
-  --duration-fast:    150ms;
-  --duration-base:    300ms;
-  --duration-slow:    600ms;
-  --duration-slower:  1000ms;
+  /* ── Motion & Transition Tokens ──────────────────────────────────────────── */
+  --duration-instant:   100ms;
+  --duration-fast:      200ms;
+  --duration-normal:    350ms;
+  --duration-cinematic: 700ms;
+  --duration-slow:      1200ms;
 
-  /* ── Z-index stack (named layers) ──────────────────────────────────────── */
-  --z-content:      1;
+  --ease-cinematic:     cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-snap:          cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out:           cubic-bezier(0.0, 0.0, 0.2, 1);
+
+  /* ── Z-Index Layering System ─────────────────────────────────────────────── */
+  --z-background:   0;
+  --z-noise:        10;
+  --z-scanlines:    20;
+  --z-content:      30;
   --z-navigation:   50;
-  --z-cursor:       90;
+  --z-overlays:     70;
   --z-flashlight:   80;
-  --z-overlay:      100;
+  --z-cursor:       90;
+  --z-modal:        100;
 }

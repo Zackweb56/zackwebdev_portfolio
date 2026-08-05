@@ -1,0 +1,96 @@
+/*
+ * ─── PORTFOLIO DESIGN TOKENS ────────────────────────────────────────────────
+ *
+ * These CSS custom properties are the single source of truth for the
+ * portfolio's visual identity.
+ *
+ * Color system: #050505 (surface) + #FFAA00 (amber accent).
+ * All opacity variations are derived from these two.
+ *
+ * Import order: this file is imported AFTER Tailwind and shadcn tokens
+ * in globals.css so that these properties are available globally.
+ *
+ * Full token expansion happens in Task 1.5 (Design Tokens).
+ */
+
+:root {
+  /* ── Core colors ───────────────────────────────────────────────────────── */
+  --color-surface:      #050505;
+  --color-amber:        #FFAA00;
+
+  /* ── Amber opacity scale ───────────────────────────────────────────────── */
+  --color-amber-90:     color-mix(in srgb, #FFAA00 90%, transparent);
+  --color-amber-70:     color-mix(in srgb, #FFAA00 70%, transparent);
+  --color-amber-50:     color-mix(in srgb, #FFAA00 50%, transparent);
+  --color-amber-30:     color-mix(in srgb, #FFAA00 30%, transparent);
+  --color-amber-15:     color-mix(in srgb, #FFAA00 15%, transparent);
+  --color-amber-08:     color-mix(in srgb, #FFAA00 8%, transparent);
+
+  /* ── White opacity scale (text and UI) ────────────────────────────────── */
+  --color-white-90:     rgba(255, 255, 255, 0.90);
+  --color-white-70:     rgba(255, 255, 255, 0.70);
+  --color-white-50:     rgba(255, 255, 255, 0.50);
+  --color-white-30:     rgba(255, 255, 255, 0.30);
+  --color-white-10:     rgba(255, 255, 255, 0.10);
+  --color-white-05:     rgba(255, 255, 255, 0.05);
+
+  /* ── Surface variations ────────────────────────────────────────────────── */
+  --color-surface-02:   color-mix(in srgb, #ffffff  2%, #050505);
+  --color-surface-04:   color-mix(in srgb, #ffffff  4%, #050505);
+  --color-surface-08:   color-mix(in srgb, #ffffff  8%, #050505);
+  --color-surface-12:   color-mix(in srgb, #ffffff 12%, #050505);
+
+  /* ── Border ────────────────────────────────────────────────────────────── */
+  --color-border:       var(--color-white-10);
+  --color-border-amber: var(--color-amber-30);
+
+  /* ── Spacing scale (editorial, not default Tailwind) ───────────────────── */
+  --space-px:    1px;
+  --space-xs:    0.25rem;   /* 4px  */
+  --space-sm:    0.5rem;    /* 8px  */
+  --space-md:    1rem;      /* 16px */
+  --space-lg:    1.5rem;    /* 24px */
+  --space-xl:    2rem;      /* 32px */
+  --space-2xl:   3rem;      /* 48px */
+  --space-3xl:   4rem;      /* 64px */
+  --space-4xl:   6rem;      /* 96px */
+  --space-5xl:   8rem;      /* 128px */
+
+  /* ── Typography sizes ──────────────────────────────────────────────────── */
+  --text-label:  0.625rem;  /* 10px — technical metadata */
+  --text-xs:     0.75rem;   /* 12px */
+  --text-sm:     0.875rem;  /* 14px */
+  --text-base:   1rem;      /* 16px */
+  --text-lg:     1.125rem;  /* 18px */
+  --text-xl:     1.25rem;   /* 20px */
+  --text-2xl:    1.5rem;    /* 24px */
+  --text-3xl:    2rem;      /* 32px */
+  --text-4xl:    2.5rem;    /* 40px */
+  --text-5xl:    3.5rem;    /* 56px */
+  --text-6xl:    5rem;      /* 80px */
+  --text-7xl:    7rem;      /* 112px — hero name */
+
+  /* ── Letter spacing ────────────────────────────────────────────────────── */
+  --tracking-label:    0.15em;   /* Technical labels / metadata */
+  --tracking-ui:       0.05em;   /* Navigation, buttons */
+  --tracking-display:  -0.02em;  /* Large display text (name) */
+
+  /* ── Line heights ──────────────────────────────────────────────────────── */
+  --leading-tight:   1.1;
+  --leading-snug:    1.25;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.7;
+
+  /* ── Animation durations ───────────────────────────────────────────────── */
+  --duration-fast:    150ms;
+  --duration-base:    300ms;
+  --duration-slow:    600ms;
+  --duration-slower:  1000ms;
+
+  /* ── Z-index stack (named layers) ──────────────────────────────────────── */
+  --z-content:      1;
+  --z-navigation:   50;
+  --z-cursor:       90;
+  --z-flashlight:   80;
+  --z-overlay:      100;
+}

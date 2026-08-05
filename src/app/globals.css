@@ -1,0 +1,101 @@
+/*
+ * ─── GLOBAL STYLES ──────────────────────────────────────────────────────────
+ *
+ * Layer order:
+ *  1. Tailwind CSS v4 base
+ *  2. Animation utilities (tw-animate-css)
+ *  3. Shadcn/base-nova token layer (used only by admin UI components)
+ *  4. Portfolio design token overrides (tokens.css)
+ *  5. Typography scale (typography.css)
+ *
+ * NOTE: The `@import` of `shadcn/tailwind.css` is kept intentionally — it
+ * provides CSS custom properties consumed by shadcn UI components used in the
+ * admin dashboard. The public portfolio uses its own design tokens below.
+ */
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* ─── Portfolio design tokens ──────────────────────────────────────────────
+   These override / extend the Tailwind / shadcn defaults for the public
+   portfolio. Full token set will be expanded in Task 1.5 (Design Tokens).   */
+
+@theme inline {
+  /* ── Colors ── */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* ── Portfolio accent ── */
+  --color-amber:        #FFAA00;
+  --color-amber-dim:    color-mix(in srgb, #FFAA00 60%, transparent);
+  --color-amber-faint:  color-mix(in srgb, #FFAA00 30%, transparent);
+
+  /* ── Surface ── */
+  --color-surface:      #050505;
+  --color-surface-02:   color-mix(in srgb, #ffffff 2%, #050505);
+  --color-surface-05:   color-mix(in srgb, #ffffff 5%, #050505);
+
+  /* ── Fonts (variables injected by Next.js font loader in layout.tsx) ── */
+  --font-sans:    var(--font-geist-sans);
+  --font-mono:    var(--font-geist-mono);
+  --font-display: var(--font-display); /* will be set in Task 1.3 */
+
+  /* ── Shadcn radius (kept for admin UI compat) ── */
+  --radius-sm:  calc(var(--radius) * 0.6);
+  --radius-md:  calc(var(--radius) * 0.8);
+  --radius-lg:  var(--radius);
+}
+
+/* ─── Root: shadcn light tokens (admin uses light surfaces) ────────────── */
+:root {
+  --background:              oklch(1 0 0);
+  --foreground:              oklch(0.145 0 0);
+  --card:                    oklch(1 0 0);
+  --card-foreground:         oklch(0.145 0 0);
+  --popover:                 oklch(1 0 0);
+  --popover-foreground:      oklch(0.145 0 0);
+  --primary:                 oklch(0.205 0 0);
+  --primary-foreground:      oklch(0.985 0 0);
+  --secondary:               oklch(0.97 0 0);
+  --secondary-foreground:    oklch(0.205 0 0);
+  --muted:                   oklch(0.97 0 0);
+  --muted-foreground:        oklch(0.556 0 0);
+  --accent:                  oklch(0.97 0 0);
+  --accent-foreground:       oklch(0.205 0 0);
+  --destructive:             oklch(0.577 0.245 27.325);
+  --border:                  oklch(0.922 0 0);
+  --input:                   oklch(0.922 0 0);
+  --ring:                    oklch(0.708 0 0);
+  --radius:                  0.625rem;
+  --sidebar:                 oklch(0.985 0 0);
+  --sidebar-foreground:      oklch(0.145 0 0);
+  --sidebar-primary:         oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent:          oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border:          oklch(0.922 0 0);
+  --sidebar-ring:            oklch(0.708 0 0);
+}
+
+/* ─── Base layer ────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+    /* Smooth scroll disabled for users who prefer reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    @apply bg-[#050505] text-white;
+    /* Will be replaced with CSS custom properties in Task 1.5 */
+  }
+}

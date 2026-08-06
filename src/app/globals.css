@@ -104,3 +104,14 @@
     overflow-x: hidden;
   }
 }
+
+/* ─── Native Cursor Hide Rule (When Custom Cursor Active on Desktop) ──────── */
+html.has-custom-cursor,
+html.has-custom-cursor body,
+html.has-custom-cursor a,
+html.has-custom-cursor button {
+  cursor: none !important;
+}
+
+
+/* custom cursor */

@@ -1,9 +1,17 @@
+import {
+  TechnicalFrame,
+  TechnicalStatus,
+  TechnicalLabel,
+  TechnicalMetadata,
+  TechnicalDivider,
+  TechnicalSectionLabel,
+} from "@/frontend/components/technical";
+
 /**
  * Public portfolio — home page
  *
- * Section bounds (Hero, Profile, Projects, Contact) are mounted as semantic
- * <section id="..."> shells to enable anchor link navigation (#profile, #projects, #contact),
- * active section tracking via IntersectionObserver, and declarative custom cursor testing.
+ * Section shells for anchor navigation, IntersectionObserver active-section tracking,
+ * and Technical UI primitive showcase.
  */
 export default function HomePage() {
   return (
@@ -11,64 +19,97 @@ export default function HomePage() {
       {/* ── 01: HERO SECTION SHELL ── */}
       <section
         id="hero"
-        className="min-h-screen flex flex-col items-center justify-center p-8 text-center font-mono text-xs text-[#FFAA00] tracking-widest gap-3"
+        className="min-h-screen flex flex-col items-center justify-center p-8 gap-10"
       >
-        <p className="opacity-40">01 // HERO SHELL</p>
-        <p className="text-white/80 text-sm">GLOBAL SYSTEM & CUSTOM CURSOR ACTIVE</p>
-        <p className="opacity-40">[ID: #hero] [CURSOR_SYSTEM: READY]</p>
+        {/* Technical UI Primitive Demo — to be replaced by real Hero content in Task Hero */}
+        <div className="w-full max-w-3xl flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <TechnicalLabel variant="amber" prefix="//">
+              SYSTEM_INITIALIZED
+            </TechnicalLabel>
+            <TechnicalStatus label="ONLINE" pulse />
+          </div>
 
-        {/* Declarative Cursor System Test Elements */}
-        <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-          <button
-            type="button"
-            data-cursor="inspect"
-            className="px-4 py-2 border border-[#FFAA00]/40 text-[#FFAA00] bg-[#FFAA00]/5 text-xs rounded-sm hover:border-[#FFAA00]"
+          <TechnicalDivider index="00" label="PORTFOLIO_SYS" />
+
+          <TechnicalFrame
+            code="SYS"
+            title="TECHNICAL UI FOUNDATION"
+            headerRight={
+              <TechnicalLabel variant="muted" prefix="[" suffix="]">
+                READ_ONLY
+              </TechnicalLabel>
+            }
           >
-            [ TEST: INSPECT ]
-          </button>
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-cursor-action="SOURCE"
-            className="px-4 py-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 text-xs rounded-sm"
-          >
-            [ TEST: SOURCE ]
-          </a>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 py-2">
+              <TechnicalMetadata label="SUBJECT" value="ZB-FULLSTACK" />
+              <TechnicalMetadata label="STATUS" value="AVAILABLE" />
+              <TechnicalMetadata label="ROLE" value="FULL STACK DEV" />
+              <TechnicalMetadata label="SYSTEM" value="NEXT.JS + TS" orientation="vertical" />
+              <TechnicalMetadata label="VERSION" value="2026.1" orientation="vertical" />
+              <TechnicalMetadata label="CLEARANCE" value="ACTIVE" orientation="vertical" />
+            </div>
+          </TechnicalFrame>
+
+          <TechnicalDivider label="SECTIONS_INDEX" />
+
+          <div className="flex flex-col gap-3">
+            <button
+              type="button"
+              data-cursor="inspect"
+              className="text-left"
+            >
+              <TechnicalSectionLabel index="01" label="Profile" stamp="SUBJECT // DOSSIER" />
+            </button>
+            <button
+              type="button"
+              data-cursor="inspect"
+              className="text-left"
+            >
+              <TechnicalSectionLabel index="02" label="Projects" stamp="EVIDENCE // ARCHIVE" />
+            </button>
+            <button
+              type="button"
+              data-cursor="inspect"
+              className="text-left"
+            >
+              <TechnicalSectionLabel index="03" label="Contact" stamp="SECURE // CHANNEL" />
+            </button>
+          </div>
         </div>
       </section>
 
       {/* ── 02: PROFILE SECTION SHELL ── */}
       <section
         id="profile"
-        className="min-h-screen flex flex-col items-center justify-center p-8 text-center font-mono text-xs text-white/50 tracking-widest gap-2 border-t border-white/5"
+        className="min-h-screen flex flex-col items-center justify-center p-8 gap-4 border-t border-white/5"
       >
-        <p className="text-[#FFAA00]" data-cursor="inspect">
-          02 // PROFILE DOSSIER SHELL
+        <TechnicalSectionLabel index="02" label="Profile" stamp="SUBJECT // DOSSIER" />
+        <p className="font-mono text-xs text-white/30 tracking-widest mt-2">
+          [AWAITING TASK — PROFILE UI]
         </p>
-        <p className="opacity-40">[ID: #profile] [AWAITING TASK 8 — PROFILE UI]</p>
       </section>
 
       {/* ── 03: PROJECTS SECTION SHELL ── */}
       <section
         id="projects"
-        className="min-h-screen flex flex-col items-center justify-center p-8 text-center font-mono text-xs text-white/50 tracking-widest gap-2 border-t border-white/5"
+        className="min-h-screen flex flex-col items-center justify-center p-8 gap-4 border-t border-white/5"
       >
-        <p className="text-[#FFAA00]" data-cursor-action="VIEW">
-          03 // PROJECTS ARCHIVE SHELL
+        <TechnicalSectionLabel index="03" label="Projects" stamp="EVIDENCE // ARCHIVE" />
+        <p className="font-mono text-xs text-white/30 tracking-widest mt-2">
+          [AWAITING TASK — PROJECTS UI]
         </p>
-        <p className="opacity-40">[ID: #projects] [AWAITING TASK 10 — PROJECTS UI]</p>
       </section>
 
       {/* ── 04: CONTACT SECTION SHELL ── */}
       <section
         id="contact"
-        className="min-h-screen flex flex-col items-center justify-center p-8 text-center font-mono text-xs text-white/50 tracking-widest gap-2 border-t border-white/5"
+        className="min-h-screen flex flex-col items-center justify-center p-8 gap-4 border-t border-white/5"
       >
-        <p className="text-[#FFAA00]" data-cursor-action="CONTACT">
-          04 // CONTACT TERMINAL SHELL
+        <TechnicalSectionLabel index="04" label="Contact" stamp="SECURE // CHANNEL" />
+        <p className="font-mono text-xs text-white/30 tracking-widest mt-2">
+          [AWAITING TASK — CONTACT UI]
         </p>
-        <p className="opacity-40">[ID: #contact] [AWAITING TASK 13 — CONTACT UI]</p>
       </section>
     </div>
   );

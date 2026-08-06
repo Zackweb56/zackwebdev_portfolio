@@ -1,6 +1,7 @@
 import React from "react";
 import { GlobalNavigation } from "@/frontend/components/navigation/GlobalNavigation";
 import { CustomCursor } from "@/frontend/components/cursor/CustomCursor";
+import { GlobalTechnicalOverlay } from "@/frontend/components/technical/GlobalTechnicalOverlay";
 
 interface PublicLayoutShellProps {
   children: React.ReactNode;
@@ -29,6 +30,9 @@ export function PublicLayoutShell({ children }: PublicLayoutShellProps) {
     <div className="relative flex flex-col min-h-screen w-full overflow-x-hidden">
       {/* ── Global Custom Cursor System ── */}
       <CustomCursor />
+
+      {/* ── Global Technical Overlay (corner metadata system) ── */}
+      <GlobalTechnicalOverlay />
 
       {/* ── Global UI Layer Slot (Navigation, Persistent UI) ── */}
       <div id="global-ui-root" className="relative z-[var(--z-navigation)]">

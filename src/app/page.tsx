@@ -1,7 +1,7 @@
 /**
  * Public portfolio — home page
  *
- * This is a placeholder shell. Content will be assembled section by section:
+ * Content will be assembled section by section:
  *   Phase 4  → Hero
  *   Phase 5  → Profile / About
  *   Phase 6  → Projects / Evidence
@@ -9,26 +9,10 @@
  */
 export default function HomePage() {
   return (
-    <main>
-      {/* ── SYSTEM STATUS ── architecture scaffold initialized ── */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          gap: "1rem",
-          fontFamily: "var(--font-geist-mono), monospace",
-          color: "#FFAA00",
-          letterSpacing: "0.1em",
-          fontSize: "0.75rem",
-        }}
-      >
-        <p style={{ opacity: 0.4 }}>PORTFOLIO — SYSTEM</p>
-        <p>ARCHITECTURE INITIALIZED</p>
-        <p style={{ opacity: 0.4 }}>AWAITING TASK 1.2 — TAILWIND TOKENS</p>
-      </div>
-    </main>
+    <div className="flex-1 flex flex-col items-center justify-center min-h-screen p-8 text-center font-mono text-xs text-[#FFAA00] tracking-widest gap-2">
+      <p className="opacity-40">PORTFOLIO // APPLICATION SHELL</p>
+      <p className="text-white/80 text-sm">FRAMEWORK & LAYERS INITIALIZED</p>
+      <p className="opacity-40">[SHELL: READY] [MAIN_CONTENT: MOUNTED]</p>
+    </div>
   );
 }

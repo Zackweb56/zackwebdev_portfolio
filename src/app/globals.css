@@ -7,6 +7,7 @@
  *  3. Shadcn/base-nova token layer (used by admin UI components)
  *  4. Portfolio design token overrides (tokens.css)
  *  5. Typography scale (typography.css)
+ *  6. Global environment & atmosphere (environment.css)
  */
 
 @import "tailwindcss";
@@ -14,6 +15,7 @@
 @import "shadcn/tailwind.css";
 @import "../frontend/styles/tokens.css";
 @import "../frontend/styles/typography.css";
+@import "../frontend/styles/environment.css";
 
 /* ─── Tailwind CSS v4 Theme Mapping ───────────────────────────────────────── */
 @theme inline {

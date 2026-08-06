@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { GlobalEnvironment } from "@/frontend/components/layout/GlobalEnvironment";
+import { PublicLayoutShell } from "@/frontend/components/layout/PublicLayoutShell";
 import "./globals.css";
-
-// ─── Temporary font setup (will be replaced in Task 1.3: Configure Fonts) ───
-// Keeping Geist as the UI/technical font — Geist Mono as the mono font.
-// Display font (Cormorant Garamond) will be added in Task 1.3.
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,7 +16,6 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-// ─── Metadata (will be expanded in Task 1.6 / SEO phase) ────────────────────
 export const metadata: Metadata = {
   title: {
     default: "Zakariyae Boughaba — Full Stack Developer",
@@ -42,8 +39,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-[#050505] text-white antialiased">
-        {children}
+      <body className="antialiased font-sans bg-[#050505] text-white">
+        <GlobalEnvironment>
+          <PublicLayoutShell>{children}</PublicLayoutShell>
+        </GlobalEnvironment>
       </body>
     </html>
   );

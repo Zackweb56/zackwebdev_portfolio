@@ -1,12 +1,32 @@
 /**
- * Contact form scroll-triggered reveal + submit state animations.
- * VALIDATING → ENCRYPTING → TRANSMITTING → MESSAGE RECEIVED
- * Implemented in Task 7.5 (transmission animation).
+ * ─── Contact Form Reveal ─────────────────────────────────────────────────────
+ *
+ * Scroll-triggered reveal for the Contact section.
+ *
+ * Phases (implemented in Contact task):
+ *   1. Section label    — fade up
+ *   2. Form fields      — staggered reveal
+ *   3. Submit button    — scale entrance
+ *   4. Social links     — staggered fade
  */
-export function initFormReveal(): void {
-  // TODO: Task 7.5
+
+import type { GSAPTimeline } from "@/frontend/animations/types";
+
+export interface ContactRefs {
+  container: HTMLElement | null;
+  label: HTMLElement | null;
+  fields: HTMLElement[];
+  submitBtn: HTMLElement | null;
+  socialLinks: HTMLElement[];
 }
 
-export function playSubmitAnimation(_state: "validating" | "transmitting" | "success" | "error"): void {
-  // TODO: Task 7.5/7.6
+/**
+ * buildFormReveal
+ *
+ * Sets up scroll-triggered reveal for the contact form.
+ * Must be called inside useGSAP() — cleanup is automatic.
+ */
+export function buildFormReveal(_refs: ContactRefs): GSAPTimeline | null {
+  // TODO: Contact task implementation
+  return null;
 }

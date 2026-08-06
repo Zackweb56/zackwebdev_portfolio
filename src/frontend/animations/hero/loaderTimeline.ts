@@ -1,15 +1,32 @@
 /**
- * Intro loader GSAP timeline.
- * Sequence: INITIALIZING → LOADING PROFILE → LOADING PROJECT DATA → SYSTEM READY
- * Target duration: ~1.5–2.5 seconds.
- * Implemented in Task 4.2 (Build intro loader).
+ * ─── Intro Loader Timeline ───────────────────────────────────────────────────
+ *
+ * Controls the intro loading sequence.
+ *
+ * Phases (implemented in Hero/Loader task):
+ *   1. Loader visible   — system boot text, progress indicator
+ *   2. Loader exit      — fade out loader, reveal content beneath
+ *   3. Page entrance    — trigger hero reveal timeline
+ *
+ * Architecture:
+ *   Loader → onComplete → loaderTimeline.kill() → buildHeroReveal().play()
  */
-import type { gsap as GSAPType } from "gsap";
 
-export function buildLoaderTimeline(_gsap: typeof GSAPType): GSAPAnimation {
-  // TODO: Task 4.2
-  return { kill: () => {} } as unknown as GSAPAnimation;
+import type { GSAPTimeline } from "@/frontend/animations/types";
+
+export interface LoaderRefs {
+  container: HTMLElement | null;
+  progressBar: HTMLElement | null;
+  systemText: HTMLElement | null;
+  percentage: HTMLElement | null;
 }
 
-// Minimal type alias — replaced with proper GSAP types when implemented
-type GSAPAnimation = { kill: () => void };
+/**
+ * buildLoaderTimeline
+ *
+ * Returns a ready-to-play timeline for the intro loader sequence.
+ */
+export function buildLoaderTimeline(_refs: LoaderRefs): GSAPTimeline | null {
+  // TODO: Loader/Hero task implementation
+  return null;
+}

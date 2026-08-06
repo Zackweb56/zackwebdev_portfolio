@@ -1,68 +1,101 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import type { gsap as GSAPType } from "gsap";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import { gsap } from "@/frontend/animations/gsap";
 
 /**
  * useGSAP
  *
- * A safe wrapper for GSAP animations inside React components.
+ * Safe wrapper for GSAP animations inside React components.
  *
- * Responsibilities:
- *  - Creates a GSAP context scoped to the provided ref element
- *  - Automatically cleans up (reverts) the context on unmount
- *  - Prevents memory leaks from orphaned ScrollTriggers
+ * ─── Why this exists ──────────────────────────────────────────────────────────
+ * GSAP animations create tweens and ScrollTriggers that persist independently
+ * of React's lifecycle. Without explicit cleanup:
+ *   - Animations continue after components unmount (memory leak)
+ *   - React Strict Mode runs effects twice → duplicate animations
+ *   - Route changes orphan ScrollTriggers that fire on wrong pages
  *
- * Pattern (mirrors the official @gsap/react hook behaviour without the dependency):
+ * ─── How it works ─────────────────────────────────────────────────────────────
+ * Uses gsap.context() which:
+ *   1. Scopes all selectors to the provided element ref
+ *   2. Tracks every tween/timeline/ScrollTrigger created inside the callback
+ *   3. Kills all of them in one call on cleanup
  *
+ * ─── Usage ───────────────────────────────────────────────────────────────────
  *   const containerRef = useRef<HTMLDivElement>(null);
+ *
  *   useGSAP(
- *     (gsap) => {
- *       gsap.from(".text", { opacity: 0, y: 20 });
+ *     (ctx) => {
+ *       ctx.gsap.from(".text", { opacity: 0, y: 20 });
  *     },
  *     { scope: containerRef, dependencies: [] }
  *   );
  *
- * NOTE: This hook is a lightweight custom implementation.
- * If the team decides to add @gsap/react in the future, this hook
- * should be replaced with the official version.
+ * ─── Strict Mode safety ───────────────────────────────────────────────────────
+ * In development, React 18+ runs effects twice (mount → unmount → remount).
+ * gsap.context().revert() cleanly kills the first run before the second.
+ * This means animations will appear to "replay once" in development — this
+ * is expected and correct behaviour.
+ *
+ * ─── @gsap/react note ────────────────────────────────────────────────────────
+ * This hook mirrors the official @gsap/react useGSAP API without the extra
+ * dependency. If the team decides to add @gsap/react, this file should be
+ * deleted and the official hook imported instead — the call signature is
+ * intentionally compatible.
  */
 
-type GSAPCallback = (gsap: typeof GSAPType) => void;
+interface GSAPCallbackContext {
+  /** The configured gsap instance (plugins already registered) */
+  gsap: typeof gsap;
+}
+
+type GSAPCallback = (ctx: GSAPCallbackContext) => void;
 
 interface UseGSAPOptions {
-  /** Scope all GSAP selectors to this element */
+  /**
+   * Scope all GSAP class-name selectors (".element") to this element's subtree.
+   * Strongly recommended — avoids accidental global DOM matches.
+   */
   scope?: React.RefObject<HTMLElement | null>;
-  /** Re-run when these values change (same as useEffect deps) */
+
+  /**
+   * Re-run the animation callback when these values change.
+   * Follows the same rules as useEffect dependencies.
+   * Pass [] to run once on mount.
+   */
   dependencies?: React.DependencyList;
 }
+
+// Use useLayoutEffect in browser, useEffect on server (SSR compatibility)
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 export function useGSAP(
   callback: GSAPCallback,
   options: UseGSAPOptions = {}
 ): void {
   const { scope, dependencies = [] } = options;
-  const savedCallback = useRef<GSAPCallback>(callback);
 
-  // Keep the ref current without re-triggering the effect
-  useEffect(() => {
-    savedCallback.current = callback;
+  // Store the latest callback ref — stable across renders, no re-trigger
+  const callbackRef = useRef<GSAPCallback>(callback);
+  useIsomorphicLayoutEffect(() => {
+    callbackRef.current = callback;
   });
 
-  useEffect(() => {
-    // Lazily import GSAP — it is a client-only library
-    let ctx: { revert: () => void } | undefined;
+  useIsomorphicLayoutEffect(() => {
+    const scopeEl = scope?.current ?? undefined;
 
-    import("gsap").then(({ gsap }) => {
-      const scopeEl = scope?.current ?? undefined;
-      ctx = gsap.context(() => {
-        savedCallback.current(gsap);
-      }, scopeEl);
-    });
+    // Create a GSAP context scoped to the container element.
+    // All tweens, timelines, and ScrollTriggers created inside are tracked.
+    const ctx = gsap.context(() => {
+      callbackRef.current({ gsap });
+    }, scopeEl);
 
+    // Cleanup: revert kills all tracked animations and restores original styles
     return () => {
-      ctx?.revert();
+      ctx.revert();
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, dependencies);
 }

@@ -5,8 +5,8 @@
  *
  * Usage in React components:
  *   import { useGSAP } from "@/frontend/hooks/useGSAP";          // React hook
- *   import { durations, eases } from "@/frontend/animations";    // Constants
- *   import { createTimeline, fadeReveal } from "@/frontend/animations"; // Utils
+ *   import { durations, eases, distances } from "@/frontend/animations"; // Constants
+ *   import { createTimeline, revealUp } from "@/frontend/animations"; // Utils
  *
  * Usage in feature animation modules:
  *   import { gsap, ScrollTrigger } from "@/frontend/animations/gsap";  // GSAP instance
@@ -21,11 +21,20 @@
  */
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-export { eases } from "./eases";
-export type { EaseName } from "./eases";
+export { eases, legacyEases } from "./eases";
+export type {
+  UIEaseName,
+  ContentEaseName,
+  CinematicEaseName,
+  SpecialtyEaseName,
+  EaseCategory,
+} from "./eases";
 
 export { durations } from "./durations";
 export type { DurationName } from "./durations";
+
+export { distances } from "./distances";
+export type { DistanceName } from "./distances";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type {
@@ -46,6 +55,10 @@ export {
   createTimeline,
   killTimeline,
   fadeReveal,
+  revealFade,
+  revealUp,
+  revealClip,
+  revealStagger,
   setVisible,
   setHidden,
   createScrollTrigger,

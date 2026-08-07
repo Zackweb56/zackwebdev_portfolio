@@ -5,7 +5,10 @@
  *   Layer 0: Surface base (#050505)
  *   Layer 1: Global Sensor Noise / Grain (SVG Data URI, static, zero JS)
  *   Layer 2: Global Surveillance Scanlines (CSS repeating linear-gradient)
- *   Layer 3: Content container (z-index: var(--z-content))
+ *   Layer 3: Section Content Baseline (z-index: var(--z-content))
+ *   Layer 4: Section Content Reveal Overlay (z-index: var(--z-content) + 1, masked around pointer)
+ *   Layer 5: Global HUD & Navigation (z-index: var(--z-navigation))
+ *   Layer 6: Custom Cursor (z-index: var(--z-cursor))
  */
 
 .global-environment {
@@ -47,10 +50,60 @@
   );
 }
 
-/* ── Reduced Motion Support ────────────────────────────────────────────────── */
+/* ── Layer 3: Section Content Baseline & Inspection Reveal System ─────────── */
+
+/* Default state (touch devices / JS fallback / no fine pointer): 100% full readability */
+.flashlight-baseline {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.flashlight-reveal-overlay {
+  display: none;
+}
+
+/* Fine-pointer active state (desktop with inspection light):
+   - Baseline layer is dark (~0.08 opacity — pitch-dark outside pointer, matching reference screenshot).
+   - Reveal overlay layer is displayed at opacity 1.0, dynamically masked around pointer position using CSS mask-image.
+   - Background #050505 is identical in both layers → ZERO gray circle or disk artifact! */
+html.has-flashlight .flashlight-baseline {
+  opacity: 0.08;
+  transition: opacity 0.3s ease;
+}
+
+html.has-flashlight .flashlight-reveal-overlay {
+  display: block;
+  opacity: 1;
+  mask-image: radial-gradient(
+    circle 420px at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
+    black 0%,
+    black 18%,
+    rgba(0, 0, 0, 0.65) 45%,
+    rgba(0, 0, 0, 0.18) 70%,
+    transparent 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    circle 420px at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
+    black 0%,
+    black 18%,
+    rgba(0, 0, 0, 0.65) 45%,
+    rgba(0, 0, 0, 0.18) 70%,
+    transparent 100%
+  );
+}
+
+/* Reduced Motion & Touch Fallback */
 @media (prefers-reduced-motion: reduce) {
   .global-noise-layer,
   .global-scanlines-layer {
     will-change: auto;
+  }
+
+  html.has-flashlight .flashlight-baseline {
+    opacity: 1 !important;
+  }
+
+  html.has-flashlight .flashlight-reveal-overlay {
+    display: none !important;
   }
 }

@@ -1,6 +1,7 @@
 import React from "react";
 import { GlobalNavigation } from "@/frontend/components/navigation/GlobalNavigation";
 import { CustomCursor } from "@/frontend/components/cursor/CustomCursor";
+import { Flashlight } from "@/frontend/components/flashlight";
 import { GlobalTechnicalOverlay } from "@/frontend/components/technical/GlobalTechnicalOverlay";
 import { GsapProvider } from "@/frontend/components/providers/GsapProvider";
 
@@ -31,6 +32,9 @@ export function PublicLayoutShell({ children }: PublicLayoutShellProps) {
     <div className="relative flex flex-col min-h-screen w-full overflow-x-hidden">
       {/* ── GSAP Animation Architecture (client-only bootstrap) ── */}
       <GsapProvider />
+
+      {/* ── Global Inspection Light System (Flashlight) ── */}
+      <Flashlight />
 
       {/* ── Global Custom Cursor System ── */}
       <CustomCursor />

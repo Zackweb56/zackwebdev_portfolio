@@ -4,6 +4,7 @@ import { CustomCursor } from "@/frontend/components/cursor/CustomCursor";
 import { Flashlight } from "@/frontend/components/flashlight";
 import { GlobalTechnicalOverlay } from "@/frontend/components/technical/GlobalTechnicalOverlay";
 import { GsapProvider } from "@/frontend/components/providers/GsapProvider";
+import { IntroLoader } from "@/frontend/components/loader";
 
 interface PublicLayoutShellProps {
   children: React.ReactNode;
@@ -32,6 +33,9 @@ export function PublicLayoutShell({ children }: PublicLayoutShellProps) {
     <div className="relative flex flex-col min-h-screen w-full overflow-x-hidden">
       {/* ── GSAP Animation Architecture (client-only bootstrap) ── */}
       <GsapProvider />
+
+      {/* ── Intro Loader / System Boot Sequence ── */}
+      <IntroLoader />
 
       {/* ── Global Inspection Light System (Flashlight) ── */}
       <Flashlight />

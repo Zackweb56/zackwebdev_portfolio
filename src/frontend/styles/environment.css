@@ -41,13 +41,11 @@
   pointer-events: none;
   z-index: var(--z-scanlines);
   opacity: 0.35;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.4) 0px,
-    rgba(0, 0, 0, 0.4) 1px,
-    transparent 1px,
-    transparent 3px
-  );
+  background: repeating-linear-gradient(0deg,
+      rgba(0, 0, 0, 0.4) 0px,
+      rgba(0, 0, 0, 0.4) 1px,
+      transparent 1px,
+      transparent 3px);
 }
 
 /* ── Layer 3: Section Content Baseline & Inspection Reveal System ─────────── */
@@ -75,25 +73,20 @@ html.has-flashlight .flashlight-reveal-overlay {
   display: block;
   opacity: 1;
   mask-image: radial-gradient(
-    circle 420px at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
+    circle 380px at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
     black 0%,
-    black 18%,
-    rgba(0, 0, 0, 0.65) 45%,
-    rgba(0, 0, 0, 0.18) 70%,
     transparent 100%
   );
   -webkit-mask-image: radial-gradient(
-    circle 420px at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
+    circle 380px at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
     black 0%,
-    black 18%,
-    rgba(0, 0, 0, 0.65) 45%,
-    rgba(0, 0, 0, 0.18) 70%,
     transparent 100%
   );
 }
 
 /* Reduced Motion & Touch Fallback */
 @media (prefers-reduced-motion: reduce) {
+
   .global-noise-layer,
   .global-scanlines-layer {
     will-change: auto;

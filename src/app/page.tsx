@@ -24,10 +24,10 @@ export default function HomePage() {
       {/* ── 01: HERO SECTION SHELL (Scoped Flashlight Content) ── */}
       <section
         id="hero"
-        className="min-h-screen flex flex-col items-center justify-center p-8 gap-10"
+        className="min-h-screen flex items-center justify-center p-8"
       >
-        <FlashlightContent className="flex flex-col items-center justify-center">
-          <div className="w-full max-w-3xl flex flex-col gap-6">
+        <FlashlightContent className="flex items-center justify-center w-full h-full">
+          <div className="w-full max-w-3xl flex flex-col gap-6 mx-auto">
             <div className="flex items-center justify-between">
               <TechnicalLabel variant="amber" prefix="//">
                 SYSTEM_INITIALIZED
@@ -58,7 +58,7 @@ export default function HomePage() {
 
             <TechnicalDivider label="SECTIONS_INDEX" />
 
-            <div className="flex flex-col gap-3">
+            {/* <div className="flex flex-col gap-3">
               <button
                 type="button"
                 data-cursor="inspect"
@@ -80,7 +80,7 @@ export default function HomePage() {
               >
                 <TechnicalSectionLabel index="03" label="Contact" stamp="SECURE // CHANNEL" />
               </button>
-            </div>
+            </div> */}
           </div>
         </FlashlightContent>
       </section>

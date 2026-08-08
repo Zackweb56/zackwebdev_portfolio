@@ -91,14 +91,21 @@ export function Flashlight() {
         currentPos.current.y += (ty - currentPos.current.y) * lerpFactor;
       }
 
-      // Update CSS custom properties on documentElement
+      // Update CSS custom properties on documentElement.
+      // --mouse-x/--mouse-y are relative to .flashlight-content-root because
+      // the reveal overlay is position:absolute inside that container.
+      // We subtract the container's top so the mask center always aligns exactly
+      // with the cursor regardless of how far down the page the section starts.
+      const container = document.querySelector(".flashlight-content-root");
+      const offsetTop = container ? container.getBoundingClientRect().top : 0;
+
       document.documentElement.style.setProperty(
         "--mouse-x",
         `${currentPos.current.x}px`
       );
       document.documentElement.style.setProperty(
         "--mouse-y",
-        `${currentPos.current.y}px`
+        `${currentPos.current.y - offsetTop}px`
       );
 
       animFrameId.current = requestAnimationFrame(renderLoop);

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useActiveSection, SectionId } from "@/frontend/hooks/useActiveSection";
 
 interface NavItem {
@@ -22,7 +23,10 @@ const NAV_ITEMS: NavItem[] = [
  * Minimal technical interface navigation for the classified portfolio system.
  *
  * Features:
- *   - Zero background fill (inherits global #050505 environment)
+ *   - Zero background fill at top (inherits global #050505 environment)
+ *   - Glass/blur effect on scroll: backdrop-blur + bg applied via classList
+ *     on the header DOM ref — no React state, no re-renders per scroll event.
+ *     CSS transition handles smooth interpolation between states.
  *   - Controlled amber accent (#FFAA00) for active & focus states
  *   - Desktop: Fixed edge-aligned system bar with subtle mono typography
  *   - Mobile: Compact header + thumb-friendly system index drawer
@@ -32,6 +36,25 @@ const NAV_ITEMS: NavItem[] = [
 export function GlobalNavigation() {
   const activeSection = useActiveSection();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+
+  // ─── Scroll glass effect ──────────────────────────────────────────────────
+  // Direct classList toggle on the DOM node — zero React state, zero re-renders.
+  // CSS transition (on .nav-header) handles smooth interpolation.
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const onScroll = () => {
+      header.classList.toggle("nav--scrolled", window.scrollY > 10);
+    };
+
+    // Apply immediately in case page loads mid-scroll (e.g., refresh)
+    onScroll();
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Close mobile drawer on Escape key
   useEffect(() => {
@@ -57,17 +80,25 @@ export function GlobalNavigation() {
   }, [mobileMenuOpen]);
 
   return (
-    <header className="fixed top-0 left-0 w-full z-[var(--z-navigation)] border-b border-white/5 pointer-events-auto">
+    <header
+      ref={headerRef}
+      className="nav-header fixed top-0 left-0 w-full z-[var(--z-navigation)] pointer-events-auto"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         {/* ── System Identity / Brand Mark ── */}
         <a
           href="#hero"
-          className="flex items-center gap-2.5 font-mono text-xs tracking-[0.15em] text-white/90 hover:text-[#FFAA00] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FFAA00] focus-visible:outline-offset-2 py-1 px-2 rounded-sm"
+          className="flex items-center py-1 px-1 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FFAA00] focus-visible:outline-offset-2 opacity-90 hover:opacity-100 transition-opacity"
           aria-label="Portfolio Home — Zakariyae Boughaba"
         >
-          <span className="inline-block w-2 h-2 rounded-full bg-[#FFAA00] animate-pulse" />
-          <span className="font-semibold text-white">Z.</span>
-          <span className="text-white/40">/ SYS.2026</span>
+          <Image
+            src="/assets/branding/BZ.png"
+            alt="ZackwebDev brand logo"
+            width={38}
+            height={38}
+            priority
+            className="object-contain select-none"
+          />
         </a>
 
         {/* ── Desktop Technical Index Navigation ── */}

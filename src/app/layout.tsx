@@ -26,6 +26,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"
   ),
+  icons: {
+    icon: "/assets/branding/BZ.png",
+    shortcut: "/assets/branding/BZ.png",
+    apple: "/assets/branding/BZ.png",
+  },
 };
 
 export default function RootLayout({

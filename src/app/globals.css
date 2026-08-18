@@ -20,63 +20,63 @@
 /* ─── Tailwind CSS v4 Theme Mapping ───────────────────────────────────────── */
 @theme inline {
   /* ── Color Palette ── */
-  --color-surface:        var(--color-surface);
-  --color-amber:          var(--color-amber);
+  --color-surface: var(--color-surface);
+  --color-amber: var(--color-amber);
 
-  --color-amber-90:       var(--color-amber-90);
-  --color-amber-70:       var(--color-amber-70);
-  --color-amber-50:       var(--color-amber-50);
-  --color-amber-30:       var(--color-amber-30);
-  --color-amber-20:       var(--color-amber-20);
-  --color-amber-15:       var(--color-amber-15);
-  --color-amber-08:       var(--color-amber-08);
+  --color-amber-90: var(--color-amber-90);
+  --color-amber-70: var(--color-amber-70);
+  --color-amber-50: var(--color-amber-50);
+  --color-amber-30: var(--color-amber-30);
+  --color-amber-20: var(--color-amber-20);
+  --color-amber-15: var(--color-amber-15);
+  --color-amber-08: var(--color-amber-08);
 
-  --color-white-90:       var(--color-white-90);
-  --color-white-70:       var(--color-white-70);
-  --color-white-50:       var(--color-white-50);
-  --color-white-35:       var(--color-white-35);
-  --color-white-20:       var(--color-white-20);
-  --color-white-10:       var(--color-white-10);
-  --color-white-05:       var(--color-white-05);
+  --color-white-90: var(--color-white-90);
+  --color-white-70: var(--color-white-70);
+  --color-white-50: var(--color-white-50);
+  --color-white-35: var(--color-white-35);
+  --color-white-20: var(--color-white-20);
+  --color-white-10: var(--color-white-10);
+  --color-white-05: var(--color-white-05);
 
   /* ── Typography Fonts ── */
-  --font-sans:            var(--font-geist-sans);
-  --font-mono:            var(--font-geist-mono);
-  --font-display:         var(--font-display, var(--font-geist-sans));
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display, var(--font-geist-sans));
 
   /* ── Z-Index Layers ── */
-  --z-background:         var(--z-background);
-  --z-noise:              var(--z-noise);
-  --z-scanlines:          var(--z-scanlines);
-  --z-content:            var(--z-content);
-  --z-navigation:         var(--z-navigation);
-  --z-overlays:           var(--z-overlays);
-  --z-flashlight:         var(--z-flashlight);
-  --z-cursor:             var(--z-cursor);
-  --z-modal:              var(--z-modal);
+  --z-background: var(--z-background);
+  --z-noise: var(--z-noise);
+  --z-scanlines: var(--z-scanlines);
+  --z-content: var(--z-content);
+  --z-navigation: var(--z-navigation);
+  --z-overlays: var(--z-overlays);
+  --z-flashlight: var(--z-flashlight);
+  --z-cursor: var(--z-cursor);
+  --z-modal: var(--z-modal);
 }
 
 /* ─── Root Defaults (Admin UI Compat) ────────────────────────────────────── */
 :root {
-  --background:              oklch(1 0 0);
-  --foreground:              oklch(0.145 0 0);
-  --card:                    oklch(1 0 0);
-  --card-foreground:         oklch(0.145 0 0);
-  --popover:                 oklch(1 0 0);
-  --popover-foreground:      oklch(0.145 0 0);
-  --primary:                 oklch(0.205 0 0);
-  --primary-foreground:      oklch(0.985 0 0);
-  --secondary:               oklch(0.97 0 0);
-  --secondary-foreground:    oklch(0.205 0 0);
-  --muted:                   oklch(0.97 0 0);
-  --muted-foreground:        oklch(0.556 0 0);
-  --accent:                  oklch(0.97 0 0);
-  --accent-foreground:       oklch(0.205 0 0);
-  --destructive:             oklch(0.577 0.245 27.325);
-  --border:                  oklch(0.922 0 0);
-  --input:                   oklch(0.922 0 0);
-  --ring:                    oklch(0.708 0 0);
-  --radius:                  0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --radius: 0.625rem;
 }
 
 /* ─── Base Application Reset ──────────────────────────────────────────────── */
@@ -115,3 +115,42 @@ html.has-custom-cursor button {
 
 
 /* custom cursor */
+
+/* ─── Navigation Scroll Glass Effect ──────────────────────────────────────── */
+/*
+ * .nav-header  — base state (at top of page): transparent, no blur
+ * .nav--scrolled — scrolled state: glass/blur applied via classList.toggle in JS
+ *
+ * CSS transition handles smooth interpolation between both states.
+ * No React state involved — zero re-renders.
+ */
+.nav-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: transparent;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease,
+    backdrop-filter 0.35s ease,
+    -webkit-backdrop-filter 0.35s ease;
+}
+
+.nav-header.nav--scrolled {
+  background: rgba(5, 5, 5, 0.82);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ─── Hero Clip-Path Name Reveal Wrapper ─────────────────────────────────── */
+/*
+ * .hero-name-clip-wrapper provides the overflow:hidden clipping context
+ * required for the clip-path slide-up reveal on the hero name.
+ * The <h1> is semantically intact inside — screen readers are unaffected.
+ */
+.hero-name-clip-wrapper {
+  overflow: hidden;
+  /* Tiny extra padding so descenders aren't clipped during animation */
+  padding-bottom: 0.08em;
+}

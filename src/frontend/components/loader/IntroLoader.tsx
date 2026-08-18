@@ -421,6 +421,11 @@ export function IntroLoader() {
   function finish() {
     document.body.style.overflow = "";
     document.documentElement.classList.remove("is-booting");
+    // Signal the Hero to begin its entrance timeline.
+    // Hero.tsx listens for this event with { once: true }.
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("hero:ready"));
+    }
     setIsComplete(true);
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { gsap } from "@/frontend/animations/gsap";
 import {
   TechnicalFrame,
   TechnicalStatus,
@@ -23,28 +24,12 @@ import {
  *   is being opened. A thin #FFAA00 seam line activates at the split boundary
  *   before the panels depart.
  *
- * Timeline (target ~5.5–6s total):
- *   0.00s  — header metadata appears
- *   0.60s  — scanline + system frame entrance
- *   1.20s  — brief glitch flash
- *   1.40s  — boot stages stagger in
- *   2.40s  — progress bar fills (1.2s)
- *   3.00s  — SYSTEM READY emerges
- *   3.50s  — brief stabilization pulse
- *   4.00s  — hold at SYSTEM READY
- *   4.20s  — crack-open begins (content fades, seam appears)
- *   4.60s  — panels depart, portfolio revealed
- *   ~5.50s — finish() fires, component unmounts
- *
  * Technical details:
  *   - No session/local storage
  *   - GSAP timeline killed on cleanup via gsap.context().revert()
  *   - Body scroll locked during boot, released on completion or unmount
  *   - html.is-booting class suppresses flashlight until boot completes
- *   - Two solid #050505 panels (top/bottom) act as the loader background shell.
- *     They provide the dark background during boot and animate away during exit.
- *     The container itself has no background, ensuring a clean reveal with no
- *     blank screen between loader and portfolio.
+ *   - Initial JSX elements start at opacity: 0 to prevent any FOUC on page reload
  */
 export function IntroLoader() {
   const [isComplete, setIsComplete] = useState(false);
@@ -64,12 +49,9 @@ export function IntroLoader() {
   const scanlineRef = useRef<HTMLDivElement>(null);
   const glitchRef = useRef<HTMLDivElement>(null);
 
-  // ─── CRACK-OPEN EXIT REFS ──────────────────────────────────────────────────
-  // The two solid panels that form the loader shell during boot.
-  // These slide apart to reveal the portfolio underneath.
+  // ─── CRACK-OPEN PANEL REFS ─────────────────────────────────────────────────
   const topPanelRef = useRef<HTMLDivElement>(null);
   const bottomPanelRef = useRef<HTMLDivElement>(null);
-  // Amber seam line that briefly activates at the split point.
   const splitLineRef = useRef<HTMLDivElement>(null);
 
   // Mount: lock scroll + suppress flashlight
@@ -86,378 +68,343 @@ export function IntroLoader() {
   // Run GSAP timeline
   useEffect(() => {
     if (isComplete) return;
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    // Dynamically import gsap to guarantee browser context
-    import("@/frontend/animations/gsap").then(({ gsap }) => {
-      const container = containerRef.current;
-      const header = headerRef.current;
-      const frame = frameRef.current;
-      const stages = [
-        stage0.current,
-        stage1.current,
-        stage2.current,
-        stage3.current,
-      ].filter(Boolean) as HTMLElement[];
-      const progressLine = progressLineRef.current;
-      const progressText = progressTextRef.current;
-      const progressWrapper = progressWrapperRef.current;
-      const statusReady = statusReadyRef.current;
-      const scanline = scanlineRef.current;
-      const glitch = glitchRef.current;
-      const topPanel = topPanelRef.current;
-      const bottomPanel = bottomPanelRef.current;
-      const splitLine = splitLineRef.current;
+    const header = headerRef.current;
+    const frame = frameRef.current;
+    const stages = [
+      stage0.current,
+      stage1.current,
+      stage2.current,
+      stage3.current,
+    ].filter(Boolean) as HTMLElement[];
+    const progressLine = progressLineRef.current;
+    const progressText = progressTextRef.current;
+    const progressWrapper = progressWrapperRef.current;
+    const statusReady = statusReadyRef.current;
+    const scanline = scanlineRef.current;
+    const glitch = glitchRef.current;
+    const topPanel = topPanelRef.current;
+    const bottomPanel = bottomPanelRef.current;
+    const splitLine = splitLineRef.current;
 
-      if (!container) return;
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
 
-      const reducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-      ).matches;
+    const ctx = gsap.context(() => {
+      if (reducedMotion) {
+        // Instant completion for reduced-motion users
+        gsap.to(container, {
+          opacity: 0,
+          duration: 0.15,
+          delay: 0.1,
+          ease: "power2.out",
+          onComplete: finish,
+        });
+        return;
+      }
 
-      const ctx = gsap.context(() => {
-        if (reducedMotion) {
-          // Instant completion for reduced-motion users
-          gsap.to(container, {
-            opacity: 0,
-            duration: 0.15,
-            delay: 0.1,
+      // ─── PRE-ANIMATION STATE SETUP ────────────────────────────────────────
+      if (header) gsap.set(header, { opacity: 0, y: -8, filter: "blur(3px)" });
+      if (frame) gsap.set(frame, { opacity: 0, scale: 0.96, filter: "blur(5px)" });
+      if (stages.length) gsap.set(stages, { opacity: 0, y: 5, filter: "blur(2px)" });
+      if (statusReady) gsap.set(statusReady, { opacity: 0, scale: 0.92, filter: "blur(2px)" });
+      if (progressLine) gsap.set(progressLine, { width: "0%" });
+      if (progressWrapper) gsap.set(progressWrapper, { opacity: 0 });
+      if (scanline) gsap.set(scanline, { opacity: 0, y: "-100%" });
+      if (glitch) gsap.set(glitch, { opacity: 0 });
+      if (topPanel) gsap.set(topPanel, { y: "0%", transformOrigin: "top center" });
+      if (bottomPanel) gsap.set(bottomPanel, { y: "0%", transformOrigin: "bottom center" });
+      if (splitLine) gsap.set(splitLine, { opacity: 0, scaleX: 0, transformOrigin: "center center" });
+
+      // ─── MASTER TIMELINE ──────────────────────────────────────────────────
+      const tl = gsap.timeline();
+
+      // 0.00s: Initial pause, solid dark environment holds for 0.2s
+      tl.addLabel("start", 0.2);
+
+      // 0.20s: Progress bar fades in at 0%
+      if (progressWrapper) {
+        tl.to(
+          progressWrapper,
+          {
+            opacity: 1,
+            duration: 0.35,
             ease: "power2.out",
-            onComplete: finish,
-          });
-          return;
-        }
+          },
+          "start"
+        );
+      }
 
-        // ─── PRE-ANIMATION STATE SETUP ────────────────────────────────────────
-
-        // Header: start hidden with blur
-        if (header) gsap.set(header, { opacity: 0, y: -8, filter: "blur(3px)" });
-
-        // Frame: start scaled down with blur
-        if (frame) gsap.set(frame, { opacity: 0, scale: 0.96, filter: "blur(5px)" });
-
-        // Stages: start hidden with upward offset
-        if (stages.length)
-          gsap.set(stages, { opacity: 0, y: 5, filter: "blur(2px)" });
-
-        // Status: start hidden with scale
-        if (statusReady)
-          gsap.set(statusReady, { opacity: 0, scale: 0.92, filter: "blur(2px)" });
-
-        // Progress: start at 0%
-        if (progressLine) gsap.set(progressLine, { width: "0%" });
-
-        // Scanline: start hidden, positioned at top
-        if (scanline) gsap.set(scanline, { opacity: 0, y: "-100%" });
-
-        // Glitch: start hidden
-        if (glitch) gsap.set(glitch, { opacity: 0 });
-
-        // ── CRACK-OPEN PANEL SETUP ───────────────────────────────────────────
-        // Panels start in position (fully covering screen, forming the dark shell).
-        // transformOrigin set for clean y slide without any rotation artifacts.
-        if (topPanel) gsap.set(topPanel, { y: "0%", transformOrigin: "top center" });
-        if (bottomPanel)
-          gsap.set(bottomPanel, { y: "0%", transformOrigin: "bottom center" });
-
-        // Split seam line: hidden and collapsed at center
-        if (splitLine)
-          gsap.set(splitLine, {
-            opacity: 0,
-            scaleX: 0,
-            transformOrigin: "center center",
-          });
-
-        const counter = { value: 0 };
-
-        const tl = gsap.timeline({ onComplete: finish });
-
-        // ─── PHASE 1: HEADER METADATA (0.6s) ────────────────────────────────
-        // ZB. identifier and ENV label materialize from above.
-        if (header) {
-          tl.to(header, {
+      // 0.30s: Header metadata arrives smoothly
+      if (header) {
+        tl.to(
+          header,
+          {
             opacity: 1,
             y: 0,
             filter: "blur(0px)",
-            duration: 0.6,
+            duration: 0.5,
             ease: "power3.out",
-          });
-        }
+          },
+          "start+=0.1"
+        );
+      }
 
-        // ─── PHASE 2: SCANLINE + SYSTEM FRAME ENTRANCE ───────────────────────
-        // Scanline and frame appear together. Frame has a slight scale-in.
-        if (scanline) {
-          tl.to(
-            scanline,
-            {
-              opacity: 0.06,
-              duration: 0.4,
-              ease: "power2.out",
-            },
-            "+=0.15"
-          );
-        }
-
-        if (frame) {
-          tl.to(
-            frame,
-            {
-              opacity: 1,
-              scale: 1,
-              filter: "blur(0px)",
-              duration: 0.7,
-              ease: "power4.out",
-            },
-            "<" // starts simultaneously with scanline
-          );
-        }
-
-        // ─── PHASE 3: GLITCH FLASH (brief system acknowledgment) ─────────────
-        if (glitch) {
-          tl.to(
-            glitch,
-            {
-              opacity: 0.04,
-              duration: 0.1,
-              ease: "power1.out",
-            },
-            "+=0.15"
-          );
-
-          tl.to(glitch, {
+      // 0.50s: Scanline sweep across the viewport
+      if (scanline) {
+        tl.to(
+          scanline,
+          {
+            opacity: 1,
+            duration: 0.1,
+          },
+          "start+=0.3"
+        );
+        tl.to(
+          scanline,
+          {
+            y: "100%",
+            duration: 0.8,
+            ease: "power2.inOut",
+          },
+          "start+=0.3"
+        );
+        tl.to(
+          scanline,
+          {
             opacity: 0,
-            duration: 0.2,
-            ease: "power1.inOut",
-          });
-        }
+            duration: 0.15,
+          },
+          "start+=0.95"
+        );
+      }
 
-        // ─── PHASE 4: STAGGERED BOOT STAGES (4 stages, 1.0s total) ─────────
-        // Each stage confirms its sub-system status.
-        if (stages.length) {
-          tl.to(
-            stages,
-            {
-              opacity: 1,
-              y: 0,
-              filter: "blur(0px)",
-              stagger: 0.18,
-              duration: 0.45,
-              ease: "power2.out",
+      // 0.60s: System frame de-blurs and scales into focus
+      if (frame) {
+        tl.to(
+          frame,
+          {
+            opacity: 1,
+            scale: 1,
+            filter: "blur(0px)",
+            duration: 0.6,
+            ease: "power4.out",
+          },
+          "start+=0.4"
+        );
+      }
+
+      // 1.10s: Brief glitch overlay flash
+      if (glitch) {
+        tl.to(
+          glitch,
+          {
+            opacity: 1,
+            duration: 0.04,
+          },
+          "start+=0.9"
+        );
+        tl.to(
+          glitch,
+          {
+            opacity: 0,
+            duration: 0.06,
+          },
+          "start+=0.94"
+        );
+        tl.to(
+          glitch,
+          {
+            opacity: 0.6,
+            duration: 0.03,
+          },
+          "start+=1.02"
+        );
+        tl.to(
+          glitch,
+          {
+            opacity: 0,
+            duration: 0.05,
+          },
+          "start+=1.05"
+        );
+      }
+
+      // 1.20s: Boot stages stagger in with precise typing feel
+      if (stages.length) {
+        tl.to(
+          stages,
+          {
+            opacity: 1,
+            y: 0,
+            filter: "blur(0px)",
+            duration: 0.35,
+            stagger: 0.22,
+            ease: "power3.out",
+          },
+          "start+=1.0"
+        );
+      }
+
+      // 1.40s: Progress line fills smoothly from 0% to 100%
+      if (progressLine) {
+        tl.to(
+          progressLine,
+          {
+            width: "100%",
+            duration: 1.4,
+            ease: "power2.inOut",
+          },
+          "start+=1.2"
+        );
+      }
+
+      // Progress counter animation
+      if (progressText) {
+        const counter = { val: 0 };
+        tl.to(
+          counter,
+          {
+            val: 100,
+            duration: 1.4,
+            ease: "power2.inOut",
+            onUpdate: () => {
+              const formatted = Math.round(counter.val)
+                .toString()
+                .padStart(3, "0");
+              if (progressText) {
+                progressText.textContent = `${formatted}%`;
+              }
             },
-            "-=0.15"
-          );
-        }
+          },
+          "start+=1.2"
+        );
+      }
 
-        // ─── PHASE 5: PROGRESS BAR + COUNTER (1.2s) ──────────────────────────
-        if (progressLine) {
-          tl.to(
-            progressLine,
-            {
-              width: "100%",
-              duration: 1.2,
-              ease: "power2.inOut",
-            },
-            "+=0.2"
-          );
-        }
+      // 2.70s: SYSTEM ONLINE ready badge emerges
+      if (statusReady) {
+        tl.to(
+          statusReady,
+          {
+            opacity: 1,
+            scale: 1,
+            filter: "blur(0px)",
+            duration: 0.45,
+            ease: "back.out(1.5)",
+          },
+          "start+=2.5"
+        );
+      }
 
-        if (progressText) {
-          tl.to(
-            counter,
-            {
-              value: 100,
-              duration: 1.2,
-              ease: "power2.inOut",
-              onUpdate: () => {
-                if (progressTextRef.current) {
-                  progressTextRef.current.textContent = `${Math.floor(counter.value)
-                    .toString()
-                    .padStart(3, "0")}%`;
-                }
-              },
-            },
-            "<" // starts simultaneously with progress bar
-          );
-        }
+      // 3.20s: Hold at system ready
+      tl.addLabel("hold", "start+=3.0");
 
-        // ─── PHASE 6: SYSTEM READY CLIMAX ────────────────────────────────────
-        // SYSTEM READY emerges during the final progress fill.
-        if (statusReady) {
-          tl.to(
-            statusReady,
-            {
-              opacity: 1,
-              scale: 1,
-              filter: "blur(0px)",
-              duration: 0.5,
-              ease: "power2.out",
-            },
-            "-=0.4"
-          );
+      // 3.40s: Content elements fade before panels split
+      const contentElements = [header, frame, progressWrapper].filter(
+        Boolean
+      ) as HTMLElement[];
 
-          // Brief stabilization pulse — the system confirming its state.
-          tl.to(
-            statusReady,
-            {
-              scale: 1.014,
-              duration: 0.18,
-              ease: "sine.inOut",
-              yoyo: true,
-              repeat: 1,
-            },
-            "+=0.1"
-          );
-        }
+      if (contentElements.length) {
+        tl.to(
+          contentElements,
+          {
+            opacity: 0,
+            y: -10,
+            duration: 0.35,
+            ease: "power2.in",
+          },
+          "hold+=0.2"
+        );
+      }
 
-        // ─── PHASE 7: SCANLINE RETREAT ────────────────────────────────────────
-        if (scanline) {
-          tl.to(
-            scanline,
-            {
-              y: "100%",
-              opacity: 0,
-              duration: 0.35,
-              ease: "power2.inOut",
-            },
-            "-=0.15"
-          );
-        }
+      // 3.75s: Crack seam line activates
+      if (splitLine) {
+        tl.to(
+          splitLine,
+          {
+            opacity: 1,
+            scaleX: 1,
+            duration: 0.25,
+            ease: "power3.out",
+          },
+          "hold+=0.45"
+        );
+      }
 
-        // ─── PHASE 8: HOLD — LET SYSTEM READY REGISTER ───────────────────────
-        tl.to({}, { duration: 0.4 });
+      // 4.00s: Top panel slides UP (-102%)
+      if (topPanel) {
+        tl.to(
+          topPanel,
+          {
+            y: "-102%",
+            duration: 0.85,
+            ease: "power4.inOut",
+          },
+          "hold+=0.6"
+        );
+      }
 
-        // ─── PHASE 9: CRACK-OPEN SPLIT REVEAL ────────────────────────────────
-        //
-        // The signature unlock sequence:
-        //
-        //   1. UI content fades — the system shell takes over
-        //   2. The amber seam activates at the horizontal midpoint
-        //   3. Top and bottom panels slide apart, tearing the shell open
-        //   4. The portfolio is revealed beneath — it was always there
-        //
-        // No blank screen. No generic fade. A physical interface opening.
+      // 4.00s: Bottom panel slides DOWN (+102%)
+      if (bottomPanel) {
+        tl.to(
+          bottomPanel,
+          {
+            y: "102%",
+            duration: 0.85,
+            ease: "power4.inOut",
+          },
+          "hold+=0.6"
+        );
+      }
 
-        // Step 1: Fade out all UI content simultaneously.
-        // The solid #050505 panels remain visible — the "shell" stays intact
-        // until the crack begins.
-        const contentToFade = [header, frame, progressWrapper].filter(
-          Boolean
-        ) as HTMLElement[];
+      // Seam line fades as panels depart
+      if (splitLine) {
+        tl.to(
+          splitLine,
+          {
+            opacity: 0,
+            scaleX: 1.1,
+            duration: 0.35,
+            ease: "power2.in",
+          },
+          "hold+=0.7"
+        );
+      }
 
-        if (contentToFade.length) {
-          tl.to(
-            contentToFade,
-            {
-              opacity: 0,
-              duration: 0.35,
-              ease: "power2.in",
-            },
-            "+=0.1"
-          );
-        }
+      // 4.85s: Entire loader completes
+      tl.call(finish, undefined, "hold+=1.35");
+    }, container);
 
-        // Step 2: The amber seam line ignites at the split boundary.
-        // Expands from center outward — the crack appears.
-        if (splitLine) {
-          tl.to(
-            splitLine,
-            {
-              opacity: 1,
-              scaleX: 1,
-              duration: 0.25,
-              ease: "power3.out",
-            },
-            "-=0.2" // overlaps with content fade — seam appears as content disappears
-          );
-        }
-
-        // Step 3: THE CRACK-OPEN — panels depart simultaneously.
-        // power4.out: immediate force, smooth deceleration as panels clear the viewport.
-        if (topPanel) {
-          tl.to(
-            topPanel,
-            {
-              y: "-102%",
-              duration: 0.7,
-              ease: "power4.out",
-            },
-            "+=0.1"
-          );
-        }
-
-        if (bottomPanel) {
-          tl.to(
-            bottomPanel,
-            {
-              y: "102%",
-              duration: 0.7,
-              ease: "power4.out",
-            },
-            "<" // perfectly synchronized with top panel
-          );
-        }
-
-        // Step 4: Seam line fades as the gap between panels widens.
-        // The portfolio takes over — no overlay remains.
-        if (splitLine) {
-          tl.to(
-            splitLine,
-            {
-              opacity: 0,
-              duration: 0.35,
-              ease: "power2.out",
-            },
-            "<+=0.2" // begins fading shortly after panels start moving
-          );
-        }
-      }, container);
-
-      // Cleanup: kill timeline if component unmounts before completion
-      return () => ctx.revert();
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => ctx.revert();
   }, [isComplete]);
 
   function finish() {
     document.body.style.overflow = "";
     document.documentElement.classList.remove("is-booting");
-    // Signal the Hero to begin its entrance timeline.
-    // Hero.tsx listens for this event with { once: true }.
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("hero:ready"));
     }
     setIsComplete(true);
   }
 
-  // Don't render anything after completion
-  if (isComplete) {
-    return null;
-  }
+  if (isComplete) return null;
 
   return (
     <div
       ref={containerRef}
-      /*
-       * No background color on the container itself.
-       * The two solid panels (topPanel / bottomPanel) form the dark shell during boot.
-       * When they slide away, the portfolio is immediately visible underneath —
-       * no blank-screen gap, no flash.
-       */
-      className="fixed inset-0 z-[var(--z-modal)] flex flex-col justify-between p-6 sm:p-10 text-white select-none overflow-hidden"
-      aria-label="System initialization"
-      role="status"
-      aria-live="polite"
+      className="fixed inset-0 pointer-events-auto flex flex-col justify-between p-6 sm:p-10 select-none overflow-hidden"
+      style={{
+        zIndex: "var(--z-overlays)",
+      }}
+      role="progressbar"
+      aria-label="System Initializing"
+      aria-valuemin={0}
+      aria-valuemax={100}
     >
-      {/* Screen reader announcement */}
-      <span className="sr-only">Loading Zakariyae Boughaba Portfolio System</span>
-
-      {/* ── TOP PANEL — Upper half of the loader shell ── */}
-      {/*
-       * Absolutely positioned, covers the top 50% of the container.
-       * 1px extra height ensures no sub-pixel gap at the seam.
-       * Sits at z-index 1 (below content at z-index 10).
-       * During the crack-open, slides to y: -102% — fully off-screen above.
-       */}
+      {/* ── TOP PANEL ── */}
       <div
         ref={topPanelRef}
         className="absolute top-0 left-0 w-full pointer-events-none bg-[#050505]"
@@ -465,11 +412,7 @@ export function IntroLoader() {
         aria-hidden="true"
       />
 
-      {/* ── BOTTOM PANEL — Lower half of the loader shell ── */}
-      {/*
-       * Covers the bottom 50% of the container.
-       * During the crack-open, slides to y: +102% — fully off-screen below.
-       */}
+      {/* ── BOTTOM PANEL ── */}
       <div
         ref={bottomPanelRef}
         className="absolute bottom-0 left-0 w-full pointer-events-none bg-[#050505]"
@@ -477,16 +420,7 @@ export function IntroLoader() {
         aria-hidden="true"
       />
 
-      {/* ── SPLIT SEAM LINE — The amber crack that precedes the panel separation ── */}
-      {/*
-       * A 1px horizontal line at the exact vertical midpoint.
-       * Starts collapsed (scaleX: 0) and expands from center outward.
-       * Sits at z-index 5 — above panels, visible when content is faded.
-       * Fades as the panels accelerate away.
-       *
-       * Positioned via top + marginTop (no CSS transform) to avoid
-       * GSAP transform conflicts when scaleX is animated.
-       */}
+      {/* ── SPLIT SEAM LINE ── */}
       <div
         ref={splitLineRef}
         className="absolute left-0 w-full pointer-events-none"
@@ -495,6 +429,7 @@ export function IntroLoader() {
           marginTop: "-0.5px",
           height: "1px",
           zIndex: 5,
+          opacity: 0,
           background:
             "linear-gradient(90deg, transparent 0%, rgba(255,170,0,0.12) 8%, rgba(255,170,0,0.7) 30%, #FFAA00 50%, rgba(255,170,0,0.7) 70%, rgba(255,170,0,0.12) 92%, transparent 100%)",
           boxShadow:
@@ -522,14 +457,10 @@ export function IntroLoader() {
       </div>
 
       {/* ── TOP: HEADER METADATA ── */}
-      {/*
-       * z-index 10 ensures content is always above the panels (z-index 1).
-       * Removed Tailwind z-10 class — using inline style for precision.
-       */}
       <div
         ref={headerRef}
         className="w-full flex items-center justify-between relative"
-        style={{ zIndex: 10 }}
+        style={{ zIndex: 10, opacity: 0 }}
         aria-hidden="true"
       >
         <div className="flex items-center gap-3">
@@ -549,7 +480,7 @@ export function IntroLoader() {
       <div
         ref={frameRef}
         className="w-full max-w-lg mx-auto my-auto flex flex-col gap-5 relative"
-        style={{ zIndex: 10 }}
+        style={{ zIndex: 10, opacity: 0 }}
       >
         <TechnicalFrame
           code="BOOT"
@@ -564,6 +495,7 @@ export function IntroLoader() {
             {/* Stage 0 */}
             <div
               ref={stage0}
+              style={{ opacity: 0 }}
               className="flex items-center justify-between font-mono text-[0.7rem] tracking-[0.12em]"
             >
               <span className="text-white/45">CORE_ENGINE</span>
@@ -573,6 +505,7 @@ export function IntroLoader() {
             {/* Stage 1 */}
             <div
               ref={stage1}
+              style={{ opacity: 0 }}
               className="flex items-center justify-between font-mono text-[0.7rem] tracking-[0.12em]"
             >
               <span className="text-white/45">INTERFACE_SYSTEM</span>
@@ -582,6 +515,7 @@ export function IntroLoader() {
             {/* Stage 2 */}
             <div
               ref={stage2}
+              style={{ opacity: 0 }}
               className="flex items-center justify-between font-mono text-[0.7rem] tracking-[0.12em]"
             >
               <span className="text-white/45">DOSSIER_DATA</span>
@@ -591,6 +525,7 @@ export function IntroLoader() {
             {/* Stage 3 */}
             <div
               ref={stage3}
+              style={{ opacity: 0 }}
               className="flex items-center justify-between font-mono text-[0.7rem] tracking-[0.12em]"
             >
               <span className="text-white/45">SECURITY_CHANNEL</span>
@@ -602,6 +537,7 @@ export function IntroLoader() {
             {/* System Ready Status */}
             <div
               ref={statusReadyRef}
+              style={{ opacity: 0 }}
               className="flex items-center justify-center pt-1"
             >
               <TechnicalStatus
@@ -618,7 +554,7 @@ export function IntroLoader() {
       <div
         ref={progressWrapperRef}
         className="w-full max-w-lg mx-auto flex flex-col gap-[0.4rem] relative"
-        style={{ zIndex: 10 }}
+        style={{ zIndex: 10, opacity: 0 }}
         aria-hidden="true"
       >
         <div className="flex items-center justify-between font-mono text-[0.6rem] tracking-[0.16em] uppercase">

@@ -125,10 +125,11 @@ html.has-custom-cursor button {
  * No React state involved — zero re-renders.
  */
 .nav-header {
+  /* Always have glass effect - even at top */
+  background: rgba(5, 5, 5, 0.4);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: transparent;
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
   transition:
     background 0.35s ease,
     border-color 0.35s ease,
@@ -138,9 +139,9 @@ html.has-custom-cursor button {
 
 .nav-header.nav--scrolled {
   background: rgba(5, 5, 5, 0.82);
-  backdrop-filter: blur(14px) saturate(1.4);
-  -webkit-backdrop-filter: blur(14px) saturate(1.4);
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px) saturate(200%);
+  -webkit-backdrop-filter: blur(16px) saturate(200%);
+  border-bottom-color: rgba(255, 170, 0, 0.08);
 }
 
 /* ─── Hero Clip-Path Name Reveal Wrapper ─────────────────────────────────── */
@@ -153,4 +154,158 @@ html.has-custom-cursor button {
   overflow: hidden;
   /* Tiny extra padding so descenders aren't clipped during animation */
   padding-bottom: 0.08em;
+}
+
+/* ─── View Transition — Global Keyframes & Rules ─────────────────────────── */
+
+/* Duration tokens */
+:root {
+  --vt-duration-exit: 180ms;
+  --vt-duration-enter: 260ms;
+  --vt-slide-offset: 64px;
+}
+
+/* ── Shared page-open: slide in from right + fade ── */
+::view-transition-old(.page-open) {
+  animation:
+    var(--vt-duration-exit) ease-in both fade reverse,
+    var(--vt-duration-exit) ease-in both slide-from-right reverse;
+}
+::view-transition-new(.page-open) {
+  animation:
+    var(--vt-duration-enter) ease-out var(--vt-duration-exit) both fade,
+    var(--vt-duration-enter) ease-out var(--vt-duration-exit) both slide-from-right;
+}
+
+/* ── page-close: slide back to right + fade ── */
+::view-transition-old(.page-close) {
+  animation:
+    var(--vt-duration-exit) ease-in both fade reverse,
+    var(--vt-duration-exit) ease-in both slide-from-left reverse;
+}
+::view-transition-new(.page-close) {
+  animation:
+    var(--vt-duration-enter) ease-out var(--vt-duration-exit) both fade,
+    var(--vt-duration-enter) ease-out var(--vt-duration-exit) both slide-from-left;
+}
+
+/* ── nav-forward: move left, new slides from right ── */
+::view-transition-old(.nav-forward) {
+  --slide-offset: calc(-1 * var(--vt-slide-offset));
+  animation:
+    var(--vt-duration-exit) ease-in both fade reverse,
+    var(--vt-duration-exit) ease-in-out both slide reverse;
+}
+::view-transition-new(.nav-forward) {
+  --slide-offset: var(--vt-slide-offset);
+  animation:
+    var(--vt-duration-enter) ease-out var(--vt-duration-exit) both fade,
+    400ms ease-in-out both slide;
+}
+
+/* ── nav-back: move right, new slides from left ── */
+::view-transition-old(.nav-back) {
+  --slide-offset: var(--vt-slide-offset);
+  animation:
+    var(--vt-duration-exit) ease-in both fade reverse,
+    var(--vt-duration-exit) ease-in-out both slide reverse;
+}
+::view-transition-new(.nav-back) {
+  --slide-offset: calc(-1 * var(--vt-slide-offset));
+  animation:
+    var(--vt-duration-enter) ease-out var(--vt-duration-exit) both fade,
+    400ms ease-in-out both slide;
+}
+
+/* ── Shared element morph: card thumbnail → detail hero ── */
+::view-transition-group(.project-media-morph) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+::view-transition-image-pair(.project-media-morph) {
+  animation-name: via-blur;
+}
+
+/* ── Common Keyframes ── */
+@keyframes fade {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes slide {
+  from { translate: var(--slide-offset, 0) 0; }
+  to   { translate: 0 0; }
+}
+
+@keyframes slide-from-right {
+  from { translate: var(--vt-slide-offset) 0; }
+  to   { translate: 0 0; }
+}
+
+@keyframes slide-from-left {
+  from { translate: calc(-1 * var(--vt-slide-offset)) 0; }
+  to   { translate: 0 0; }
+}
+
+@keyframes via-blur {
+  30% { filter: blur(3px); }
+}
+
+/* ── Header anchor — stays fixed during page transitions ── */
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) { display: none; }
+::view-transition-new(site-header) { animation: none; }
+
+/* ── Reduced motion override ── */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* ── Custom Sleek Cyberpunk/HUD Scrollbar ── */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 170, 0, 0.25);
+  border-radius: 2px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 170, 0, 0.6);
+}
+
+/* ── Premium Image Border Hover Animation ── */
+.project-media-frame {
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.project-media-frame:hover {
+  border-color: rgba(255, 170, 0, 0.8);
+  box-shadow: 0 0 25px rgba(255, 170, 0, 0.18), inset 0 0 15px rgba(255, 170, 0, 0.08);
+}
+.project-media-frame .corner-reticle {
+  transition: all 0.3s ease;
+}
+.project-media-frame:hover .corner-reticle {
+  border-color: #ffaa00;
+  width: 14px;
+  height: 14px;
 }

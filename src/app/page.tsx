@@ -1,7 +1,7 @@
 import { Hero } from "@/frontend/components/hero";
 import { ProfileSection } from "@/frontend/components/profile";
 import { TechnicalSectionLabel } from "@/frontend/components/technical";
-
+import { ProjectsSection } from "@/frontend/components/projects";
 /**
  * Public portfolio — home page
  *
@@ -20,16 +20,8 @@ export default function HomePage() {
       {/* ── 02: PROFILE SECTION (Task 13 Completed) ── */}
       <ProfileSection />
 
-      {/* ── 03: PROJECTS SECTION SHELL (Awaiting Task 14-16) ── */}
-      <section
-        id="projects"
-        className="min-h-screen flex flex-col items-center justify-center p-8 gap-4 border-t border-white/5"
-      >
-        <TechnicalSectionLabel index="03" label="Projects" stamp="EVIDENCE // ARCHIVE" />
-        <p className="font-mono text-xs text-white/30 tracking-widest mt-2">
-          [AWAITING TASK 14-16 — PROJECTS UI]
-        </p>
-      </section>
+      {/* ── 03: PROJECTS SECTION (Task 14 Foundation / Task 15 Ready) ── */}
+      <ProjectsSection />
 
       {/* ── 04: CONTACT SECTION SHELL (Awaiting Task 17) ── */}
       <section

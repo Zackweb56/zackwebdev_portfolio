@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "@/frontend/animations/gsap";
 
-
 /**
  * IntroLoader
  *
@@ -39,14 +38,12 @@ export function IntroLoader() {
   const topPanelRef = useRef<HTMLDivElement>(null);
   const bottomPanelRef = useRef<HTMLDivElement>(null);
   const splitLineRef = useRef<HTMLDivElement>(null);
-  const topLineRef = useRef<HTMLDivElement>(null);
-  const bottomLineRef = useRef<HTMLDivElement>(null);
 
   // Mount: lock scroll + suppress flashlight
   useEffect(() => {
     document.body.style.overflow = "hidden";
     document.documentElement.classList.add("is-booting");
-    
+
     const timer = setTimeout(() => {
       setIsMounted(true);
     }, 50);
@@ -79,8 +76,6 @@ export function IntroLoader() {
     const topPanel = topPanelRef.current;
     const bottomPanel = bottomPanelRef.current;
     const splitLine = splitLineRef.current;
-    const topLine = topLineRef.current;
-    const bottomLine = bottomLineRef.current;
 
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -105,11 +100,9 @@ export function IntroLoader() {
       if (statusReady) gsap.set(statusReady, { opacity: 0, scale: 0.92, filter: "blur(2px)" });
       if (progressLine) gsap.set(progressLine, { width: "0%" });
       if (progressWrapper) gsap.set(progressWrapper, { opacity: 0 });
-      if (topPanel) gsap.set(topPanel, { y: "0%", transformOrigin: "top center" });
-      if (bottomPanel) gsap.set(bottomPanel, { y: "0%", transformOrigin: "bottom center" });
-      if (splitLine) gsap.set(splitLine, { opacity: 0, scaleX: 0, transformOrigin: "center center" });
-      if (topLine) gsap.set(topLine, { opacity: 0, y: 0, scaleX: 0, transformOrigin: "center center" });
-      if (bottomLine) gsap.set(bottomLine, { opacity: 0, y: 0, scaleX: 0, transformOrigin: "center center" });
+      if (topPanel) gsap.set(topPanel, { y: "0%" });
+      if (bottomPanel) gsap.set(bottomPanel, { y: "0%" });
+      if (splitLine) gsap.set(splitLine, { opacity: 0, scaleX: 0 });
 
       // ─── MASTER TIMELINE ──────────────────────────────────────────────────
       const tl = gsap.timeline();
@@ -229,7 +222,7 @@ export function IntroLoader() {
       // 3.20s: Hold at system ready
       tl.addLabel("hold", "start+=3.0");
 
-      // ─── GATE OPENING SEQUENCE WITH SPLIT LINES ─────────────────────────
+      // ─── GATE OPENING SEQUENCE ──────────────────────────────────────────
 
       // 3.30s: Content elements fade out cleanly
       const contentElements = [header, frame, progressWrapper].filter(
@@ -256,77 +249,14 @@ export function IntroLoader() {
           {
             opacity: 1,
             scaleX: 1,
-            duration: 0.5,
+            duration: 0.3,
             ease: "power3.out",
           },
           "hold+=0.3"
         );
       }
 
-      // 3.80s: Split the line and open the gate simultaneously
-      // Top line moves up with top panel
-      if (topLine) {
-        tl.to(
-          topLine,
-          {
-            opacity: 1,
-            scaleX: 1,
-            duration: 0.3,
-            ease: "power2.out",
-          },
-          "hold+=0.6"
-        );
-        
-        tl.to(
-          topLine,
-          {
-            y: "-50%",
-            opacity: 0,
-            duration: 0.8,
-            ease: "power4.inOut",
-          },
-          "hold+=0.9"
-        );
-      }
-
-      // Bottom line moves down with bottom panel
-      if (bottomLine) {
-        tl.to(
-          bottomLine,
-          {
-            opacity: 1,
-            scaleX: 1,
-            duration: 0.3,
-            ease: "power2.out",
-          },
-          "hold+=0.6"
-        );
-        
-        tl.to(
-          bottomLine,
-          {
-            y: "50%",
-            opacity: 0,
-            duration: 0.8,
-            ease: "power4.inOut",
-          },
-          "hold+=0.9"
-        );
-      }
-
-      // Center seam line fades as lines split
-      if (splitLine) {
-        tl.to(
-          splitLine,
-          {
-            opacity: 0,
-            scaleX: 0.3,
-            duration: 0.3,
-            ease: "power2.in",
-          },
-          "hold+=0.8"
-        );
-      }
+      // ─── GATE OPENS WITH LINE FADING OUT ──────────────────────────────
 
       // Top panel slides UP
       if (topPanel) {
@@ -334,7 +264,7 @@ export function IntroLoader() {
           topPanel,
           {
             y: "-100%",
-            duration: 1.0,
+            duration: 0.9,
             ease: "power4.inOut",
           },
           "hold+=0.6"
@@ -347,10 +277,24 @@ export function IntroLoader() {
           bottomPanel,
           {
             y: "100%",
-            duration: 1.0,
+            duration: 0.9,
             ease: "power4.inOut",
           },
           "hold+=0.6"
+        );
+      }
+
+      // Line fades out DURING the gate opening
+      if (splitLine) {
+        tl.to(
+          splitLine,
+          {
+            opacity: 0,
+            scaleX: 0.3,
+            duration: 0.5,
+            ease: "power2.inOut",
+          },
+          "hold+=0.7" // Starts fading right as the gate opens
         );
       }
 
@@ -375,23 +319,23 @@ export function IntroLoader() {
   return (
     <>
       {/* Black overlay flash guard during hydration */}
-      <div 
-        className="fixed inset-0 pointer-events-none" 
-        style={{ 
-          zIndex: 9999, 
-          background: '#050505',
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          zIndex: 9999,
+          background: "#050505",
           opacity: !isMounted ? 1 : 0,
-          transition: 'opacity 0.15s ease'
-        }} 
+          transition: "opacity 0.15s ease",
+        }}
         aria-hidden="true"
       />
-      
+
       <div
         ref={containerRef}
         className="fixed inset-0 pointer-events-auto flex flex-col justify-between p-6 sm:p-10 select-none overflow-hidden"
         style={{
           zIndex: "var(--z-overlays)",
-          background: 'transparent',
+          background: "transparent",
         }}
         role="progressbar"
         aria-label="System Initializing"
@@ -414,7 +358,7 @@ export function IntroLoader() {
           aria-hidden="true"
         />
 
-        {/* ── SPLIT SEAM LINE (Center - appears first) ── */}
+        {/* ── SINGLE SPLIT LINE (Appears then fades during gate open) ── */}
         <div
           ref={splitLineRef}
           className="absolute left-0 w-full pointer-events-none"
@@ -422,39 +366,10 @@ export function IntroLoader() {
             top: "50%",
             marginTop: "-0.5px",
             height: "1px",
-            zIndex: 5,
-            opacity: 0,
-            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 15%, rgba(255,255,255,0.6) 35%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.6) 65%, rgba(255,255,255,0.15) 85%, transparent 100%)",
-          }}
-          aria-hidden="true"
-        />
-
-        {/* ── TOP LINE (Splits from center and moves up) ── */}
-        <div
-          ref={topLineRef}
-          className="absolute left-0 w-full pointer-events-none"
-          style={{
-            top: "50%",
-            marginTop: "-0.5px",
-            height: "1px",
             zIndex: 6,
             opacity: 0,
-            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 10%, rgba(255,255,255,0.5) 30%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.5) 70%, rgba(255,255,255,0.1) 90%, transparent 100%)",
-          }}
-          aria-hidden="true"
-        />
-
-        {/* ── BOTTOM LINE (Splits from center and moves down) ── */}
-        <div
-          ref={bottomLineRef}
-          className="absolute left-0 w-full pointer-events-none"
-          style={{
-            top: "50%",
-            marginTop: "-0.5px",
-            height: "1px",
-            zIndex: 6,
-            opacity: 0,
-            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 10%, rgba(255,255,255,0.5) 30%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.5) 70%, rgba(255,255,255,0.1) 90%, transparent 100%)",
+            background:
+              "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 10%, rgba(255,255,255,0.5) 30%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.5) 70%, rgba(255,255,255,0.1) 90%, transparent 100%)",
           }}
           aria-hidden="true"
         />
@@ -488,17 +403,33 @@ export function IntroLoader() {
           {/* Inline TechnicalFrame — border panel with corner brackets & header */}
           <div className="relative border border-white/10 bg-[#050505]/80 p-5 sm:p-6">
             {/* Corner brackets */}
-            <span className="absolute -top-[1px] -left-[1px] w-2 h-2 border-t-2 border-l-2 border-[#FFAA00]/70" aria-hidden="true" />
-            <span className="absolute -top-[1px] -right-[1px] w-2 h-2 border-t-2 border-r-2 border-[#FFAA00]/70" aria-hidden="true" />
-            <span className="absolute -bottom-[1px] -left-[1px] w-2 h-2 border-b-2 border-l-2 border-[#FFAA00]/70" aria-hidden="true" />
-            <span className="absolute -bottom-[1px] -right-[1px] w-2 h-2 border-b-2 border-r-2 border-[#FFAA00]/70" aria-hidden="true" />
+            <span
+              className="absolute -top-[1px] -left-[1px] w-2 h-2 border-t-2 border-l-2 border-[#FFAA00]/70"
+              aria-hidden="true"
+            />
+            <span
+              className="absolute -top-[1px] -right-[1px] w-2 h-2 border-t-2 border-r-2 border-[#FFAA00]/70"
+              aria-hidden="true"
+            />
+            <span
+              className="absolute -bottom-[1px] -left-[1px] w-2 h-2 border-b-2 border-l-2 border-[#FFAA00]/70"
+              aria-hidden="true"
+            />
+            <span
+              className="absolute -bottom-[1px] -right-[1px] w-2 h-2 border-b-2 border-r-2 border-[#FFAA00]/70"
+              aria-hidden="true"
+            />
             {/* Frame Header */}
             <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-4 select-none">
               <div className="flex items-center gap-2.5 font-mono text-[0.65rem] tracking-[0.15em] uppercase">
                 <span className="text-[#FFAA00]">[BOOT]</span>
-                <span className="text-white/60 font-semibold">SYSTEM INITIALIZATION</span>
+                <span className="text-white/60 font-semibold">
+                  SYSTEM INITIALIZATION
+                </span>
               </div>
-              <span className="font-mono text-[0.65rem] tracking-[0.15em] uppercase text-white/60">// BUILD_2026.1</span>
+              <span className="font-mono text-[0.65rem] tracking-[0.15em] uppercase text-white/60">
+                // BUILD_2026.1
+              </span>
             </div>
             <div className="flex flex-col gap-[0.65rem] py-2" aria-hidden="true">
               {/* Stage 0 */}
@@ -541,10 +472,14 @@ export function IntroLoader() {
                 <span className="text-[#FFAA00]">[ SECURE ]</span>
               </div>
 
-                {/* TechnicalDivider inline — simple hr */}
-                <div className="flex items-center gap-3 select-none my-1" role="separator" aria-hidden="true">
-                  <div className="flex-1 h-px bg-white/10" />
-                </div>
+              {/* TechnicalDivider inline — simple hr */}
+              <div
+                className="flex items-center gap-3 select-none my-1"
+                role="separator"
+                aria-hidden="true"
+              >
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
 
               {/* System Ready Status */}
               <div
@@ -552,9 +487,11 @@ export function IntroLoader() {
                 style={{ opacity: 0 }}
                 className="flex items-center justify-center pt-1"
               >
-                {/* TechnicalStatus inline */}
                 <div className="inline-flex items-center gap-2 font-mono text-[0.65rem] tracking-[0.15em] uppercase text-[#FFAA00]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FFAA00] animate-pulse" aria-hidden="true" />
+                  <span
+                    className="w-1.5 h-1.5 rounded-full bg-[#FFAA00] animate-pulse"
+                    aria-hidden="true"
+                  />
                   <span>SYSTEM ONLINE // INTERFACE UNLOCKED</span>
                 </div>
               </div>

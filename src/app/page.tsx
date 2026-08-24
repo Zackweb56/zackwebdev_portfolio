@@ -1,15 +1,15 @@
 import { Hero } from "@/frontend/components/hero";
 import { ProfileSection } from "@/frontend/components/profile";
-import { TechnicalSectionLabel } from "@/frontend/components/technical";
 import { ProjectsSection } from "@/frontend/components/projects";
+import { ContactSection } from "@/frontend/components/contact";
+
 /**
  * Public portfolio — home page
  *
- * Section assembly for public presentation.
- * 01 Hero (#hero) — Foundation identity screen wrapped in FlashlightContent
- * 02 Profile (#profile) — Digital dossier section wrapped in FlashlightContent
- * 03 Projects (#projects) — Awaiting Task 14-16
- * 04 Contact (#contact) — Awaiting Task 17
+ * 01 Hero (#hero) — Foundation identity screen
+ * 02 Profile (#profile) — Digital dossier section
+ * 03 Projects (#projects) — Interactive project gallery & SPA modal
+ * 04 Contact (#contact) — Minimalist contact interface, 2D radar map & social links
  */
 export default function HomePage() {
   return (
@@ -17,22 +17,14 @@ export default function HomePage() {
       {/* ── 01: HERO SECTION FOUNDATION ── */}
       <Hero />
 
-      {/* ── 02: PROFILE SECTION (Task 13 Completed) ── */}
+      {/* ── 02: PROFILE SECTION ── */}
       <ProfileSection />
 
-      {/* ── 03: PROJECTS SECTION (Task 14 Foundation / Task 15 Ready) ── */}
+      {/* ── 03: PROJECTS SECTION ── */}
       <ProjectsSection />
 
-      {/* ── 04: CONTACT SECTION SHELL (Awaiting Task 17) ── */}
-      <section
-        id="contact"
-        className="min-h-screen flex flex-col items-center justify-center p-8 gap-4 border-t border-white/5"
-      >
-        <TechnicalSectionLabel index="04" label="Contact" stamp="SECURE // CHANNEL" />
-        <p className="font-mono text-xs text-white/30 tracking-widest mt-2">
-          [AWAITING TASK 17 — CONTACT UI]
-        </p>
-      </section>
+      {/* ── 04: CONTACT SECTION ── */}
+      <ContactSection />
     </div>
   );
 }

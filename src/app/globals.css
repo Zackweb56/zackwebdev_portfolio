@@ -171,6 +171,7 @@ html.has-custom-cursor button {
     var(--vt-duration-exit) ease-in both fade reverse,
     var(--vt-duration-exit) ease-in both slide-from-right reverse;
 }
+
 ::view-transition-new(.page-open) {
   animation:
     var(--vt-duration-enter) ease-out var(--vt-duration-exit) both fade,
@@ -183,6 +184,7 @@ html.has-custom-cursor button {
     var(--vt-duration-exit) ease-in both fade reverse,
     var(--vt-duration-exit) ease-in both slide-from-left reverse;
 }
+
 ::view-transition-new(.page-close) {
   animation:
     var(--vt-duration-enter) ease-out var(--vt-duration-exit) both fade,
@@ -196,6 +198,7 @@ html.has-custom-cursor button {
     var(--vt-duration-exit) ease-in both fade reverse,
     var(--vt-duration-exit) ease-in-out both slide reverse;
 }
+
 ::view-transition-new(.nav-forward) {
   --slide-offset: var(--vt-slide-offset);
   animation:
@@ -210,6 +213,7 @@ html.has-custom-cursor button {
     var(--vt-duration-exit) ease-in both fade reverse,
     var(--vt-duration-exit) ease-in-out both slide reverse;
 }
+
 ::view-transition-new(.nav-back) {
   --slide-offset: calc(-1 * var(--vt-slide-offset));
   animation:
@@ -222,6 +226,7 @@ html.has-custom-cursor button {
   animation-duration: 420ms;
   animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
+
 ::view-transition-image-pair(.project-media-morph) {
   animation-name: via-blur;
 }
@@ -232,6 +237,7 @@ html.has-custom-cursor button {
     opacity: 0;
     filter: blur(4px);
   }
+
   to {
     opacity: 1;
     filter: blur(0);
@@ -239,22 +245,39 @@ html.has-custom-cursor button {
 }
 
 @keyframes slide {
-  from { translate: var(--slide-offset, 0) 0; }
-  to   { translate: 0 0; }
+  from {
+    translate: var(--slide-offset, 0) 0;
+  }
+
+  to {
+    translate: 0 0;
+  }
 }
 
 @keyframes slide-from-right {
-  from { translate: var(--vt-slide-offset) 0; }
-  to   { translate: 0 0; }
+  from {
+    translate: var(--vt-slide-offset) 0;
+  }
+
+  to {
+    translate: 0 0;
+  }
 }
 
 @keyframes slide-from-left {
-  from { translate: calc(-1 * var(--vt-slide-offset)) 0; }
-  to   { translate: 0 0; }
+  from {
+    translate: calc(-1 * var(--vt-slide-offset)) 0;
+  }
+
+  to {
+    translate: 0 0;
+  }
 }
 
 @keyframes via-blur {
-  30% { filter: blur(3px); }
+  30% {
+    filter: blur(3px);
+  }
 }
 
 /* ── Header anchor — stays fixed during page transitions ── */
@@ -262,11 +285,18 @@ html.has-custom-cursor button {
   animation: none;
   z-index: 100;
 }
-::view-transition-old(site-header) { display: none; }
-::view-transition-new(site-header) { animation: none; }
+
+::view-transition-old(site-header) {
+  display: none;
+}
+
+::view-transition-new(site-header) {
+  animation: none;
+}
 
 /* ── Reduced motion override ── */
 @media (prefers-reduced-motion: reduce) {
+
   ::view-transition-old(*),
   ::view-transition-new(*),
   ::view-transition-group(*) {
@@ -280,13 +310,16 @@ html.has-custom-cursor button {
   width: 4px;
   height: 4px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.02);
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 170, 0, 0.25);
   border-radius: 2px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 170, 0, 0.6);
 }
@@ -297,13 +330,16 @@ html.has-custom-cursor button {
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
+
 .project-media-frame:hover {
   border-color: rgba(255, 170, 0, 0.8);
   box-shadow: 0 0 25px rgba(255, 170, 0, 0.18), inset 0 0 15px rgba(255, 170, 0, 0.08);
 }
+
 .project-media-frame .corner-reticle {
   transition: all 0.3s ease;
 }
+
 .project-media-frame:hover .corner-reticle {
   border-color: #ffaa00;
   width: 14px;

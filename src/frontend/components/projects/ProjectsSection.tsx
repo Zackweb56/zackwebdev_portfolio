@@ -11,7 +11,7 @@ import { getAllProjects, getProjectBySlug } from "@/frontend/lib/projects/regist
 import { ProjectGalleryCard } from "./ProjectGalleryCard";
 import { ProjectDetailModal } from "./ProjectDetailModal";
 import { playSound } from "@/frontend/lib/sound";
-import { TechnicalSectionLabel } from "@/frontend/components/technical";
+
 
 type ViewMode = "slider" | "grid";
 
@@ -203,11 +203,15 @@ export function ProjectsSection({ className = "" }: { className?: string }) {
       <div className="px-4 sm:px-6 lg:px-14 mb-8 flex flex-col gap-4 sm:grid sm:grid-cols-3 sm:items-center">
         {/* LEFT — Section label */}
         <div className="flex flex-col gap-1">
-          <TechnicalSectionLabel
-            index="02"
-            label="Projects"
-            stamp="EVIDENCE // ARCHIVE"
-          />
+          <div className="flex flex-col gap-1.5">
+            <span className="font-mono text-[0.625rem] tracking-[0.2em] text-[#FFAA00] uppercase opacity-75 select-none">
+              EVIDENCE // ARCHIVE
+            </span>
+            <div className="flex items-baseline gap-3">
+              <span className="font-mono text-xs text-[#FFAA00] tracking-widest font-semibold">[02]</span>
+              <h2 className="font-display text-2xl sm:text-3xl md:text-4xl text-white/90 uppercase tracking-tight">Projects</h2>
+            </div>
+          </div>
           <span
             className="font-mono text-[0.6rem] tracking-[0.18em] uppercase"
             style={{ color: "rgba(255,255,255,0.25)" }}

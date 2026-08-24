@@ -1,8 +1,9 @@
 import React from "react";
 import { GlobalNavigation } from "@/frontend/components/navigation/GlobalNavigation";
+import { Footer } from "@/frontend/components/layout/Footer";
 import { CustomCursor } from "@/frontend/components/cursor/CustomCursor";
 import { Flashlight } from "@/frontend/components/flashlight";
-import { GlobalTechnicalOverlay } from "@/frontend/components/technical/GlobalTechnicalOverlay";
+
 import { GsapProvider } from "@/frontend/components/providers/GsapProvider";
 import { IntroLoader } from "@/frontend/components/loader";
 
@@ -25,7 +26,10 @@ interface PublicLayoutShellProps {
  *   3. Main Content         (z-index: var(--z-content) -> 30)
  *      Semantic <main> element for section assembly (01 Hero, 02 Profile, 03 Projects, 04 Contact).
  *
- *   4. Global Overlay       (z-index: var(--z-overlays) -> 70)
+ *   4. Global Footer        (z-index: var(--z-content) -> 30)
+ *      Minimalist developer portfolio footer.
+ *
+ *   5. Global Overlay       (z-index: var(--z-overlays) -> 70)
  *      Slot for future modals, technical overlays, and route transitions.
  */
 export function PublicLayoutShell({ children }: PublicLayoutShellProps) {
@@ -43,9 +47,6 @@ export function PublicLayoutShell({ children }: PublicLayoutShellProps) {
       {/* ── Global Custom Cursor System ── */}
       <CustomCursor />
 
-      {/* ── Global Technical Overlay (corner metadata system) ── */}
-      <GlobalTechnicalOverlay />
-
       {/* ── Global UI Layer Slot (Navigation, Persistent UI) ── */}
       <div id="global-ui-root" className="relative z-[var(--z-navigation)]">
         <GlobalNavigation />
@@ -58,6 +59,9 @@ export function PublicLayoutShell({ children }: PublicLayoutShellProps) {
       >
         {children}
       </main>
+
+      {/* ── Global Minimalist Footer ── */}
+      <Footer />
 
       {/* ── Global Overlay Slot (Modals, Technical Overlays) ── */}
       <div id="global-overlay-root" className="relative z-[var(--z-overlays)]" />

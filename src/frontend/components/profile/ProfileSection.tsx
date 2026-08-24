@@ -2,11 +2,7 @@
 
 import React, { useRef } from "react";
 import Image from "next/image";
-import {
-  TechnicalLabel,
-  TechnicalStatus,
-  TechnicalSectionLabel,
-} from "@/frontend/components/technical";
+
 import {
   defaultProfileContent,
   ProfileContent,
@@ -67,16 +63,20 @@ export function ProfileSection({
           ref={headerRef}
           className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-5"
         >
-          <TechnicalSectionLabel
-            index={content.header.index}
-            label={content.header.label}
-            stamp={content.header.stamp}
-          />
+          <div className="flex flex-col gap-1.5">
+            {content.header.stamp && (
+              <span className="font-mono text-[0.625rem] tracking-[0.2em] text-[#FFAA00] uppercase opacity-75 select-none">
+                {content.header.stamp}
+              </span>
+            )}
+            <div className="flex items-baseline gap-3">
+              <span className="font-mono text-xs text-[#FFAA00] tracking-widest font-semibold">[{content.header.index}]</span>
+              <h2 className="font-display text-2xl sm:text-3xl md:text-4xl text-white/90 uppercase tracking-tight">{content.header.label}</h2>
+            </div>
+          </div>
 
           <div className="flex items-center gap-3 font-mono text-xs text-white/40 select-none">
-            <TechnicalLabel variant="amber" prefix="[" suffix="]">
-              READ_ONLY
-            </TechnicalLabel>
+            <span className="font-mono text-[0.65rem] tracking-[0.15em] uppercase text-[#FFAA00]">[READ_ONLY]</span>
             <span className="text-white/20">|</span>
             <span className="tracking-widest text-[0.65rem] uppercase">
               SYS.REF: {content.header.systemRef}
@@ -164,7 +164,10 @@ export function ProfileSection({
                     {content.identity.availability}
                   </span>
                 </div>
-                <TechnicalStatus label="ONLINE" variant="amber" pulse />
+                <span className="inline-flex items-center gap-1.5 font-mono text-[0.65rem] tracking-[0.15em] uppercase text-[#FFAA00]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FFAA00] animate-pulse" />
+                  ONLINE
+                </span>
               </div>
               <div className="font-mono text-[0.7rem] text-white font-semibold tracking-wide">
                 {content.identity.workMode}

@@ -31,7 +31,7 @@ export function FlashlightContent({
   return (
     <div className={`flashlight-content-root relative w-full ${className}`}>
       {/* ── Layer 1: Interactive Content (Dark Baseline) ── */}
-      <div className="flashlight-baseline w-full">{children}</div>
+      <div className="flashlight-baseline w-full h-full">{children}</div>
 
       {/* ── Layer 2: Visual Illumination Overlay (Full Contrast + Soft Pointer Mask) ── */}
       <div

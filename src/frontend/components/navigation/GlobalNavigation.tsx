@@ -17,48 +17,55 @@ const NAV_ITEMS: NavItem[] = [
   { id: "contact", code: "03", label: "CONTACT", href: "#contact" },
 ];
 
-/**
- * GlobalNavigation
- *
- * Minimal technical interface navigation for the classified portfolio system.
- */
 export function GlobalNavigation() {
   const activeSection = useActiveSection();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
-  // ─── Scroll glass effect ──────────────────────────────────────────────────
+  // ─── Force glass styles via CSSOM — bypasses all cascade/specificity issues ──
   useEffect(() => {
     const header = headerRef.current;
     if (!header) return;
 
+    header.style.setProperty("background", "rgba(5, 5, 5, 0.45)", "important");
+    header.style.setProperty("backdrop-filter", "blur(24px) saturate(180%)", "important");
+    header.style.setProperty("-webkit-backdrop-filter", "blur(24px) saturate(180%)", "important");
+
+    // Diagnostic — check your browser console after load
+    console.log("[nav-header] computed backdrop-filter:", getComputedStyle(header).backdropFilter);
+
+    // Diagnostic — walk ancestors for anything breaking position:fixed
+    let el: HTMLElement | null = header.parentElement;
+    while (el) {
+      const t = getComputedStyle(el).transform;
+      if (t !== "none") {
+        console.warn("[nav-header] ancestor has transform, breaking fixed context:", el, t);
+      }
+      el = el.parentElement;
+    }
+  }, []);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
     const onScroll = () => {
       header.classList.toggle("nav--scrolled", window.scrollY > 10);
     };
-
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close mobile drawer on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && mobileMenuOpen) {
-        setMobileMenuOpen(false);
-      }
+      if (e.key === "Escape" && mobileMenuOpen) setMobileMenuOpen(false);
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileMenuOpen]);
 
-  // Prevent scroll when mobile menu is open
   useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
@@ -66,30 +73,8 @@ export function GlobalNavigation() {
 
   return (
     <>
-      <style jsx>{`
-        .nav-header {
-          background: rgba(5, 5, 5, 0.4);
-          backdrop-filter: blur(12px) saturate(180%);
-          -webkit-backdrop-filter: blur(12px) saturate(180%);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-          transition: background 0.35s ease, border-color 0.35s ease,
-            backdrop-filter 0.35s ease, -webkit-backdrop-filter 0.35s ease;
-        }
-
-        .nav-header.nav--scrolled {
-          background: rgba(5, 5, 5, 0.82);
-          backdrop-filter: blur(16px) saturate(200%);
-          -webkit-backdrop-filter: blur(16px) saturate(200%);
-          border-bottom-color: rgba(255, 255, 255, 0.08);
-        }
-      `}</style>
-
-      <header
-        ref={headerRef}
-        className="nav-header fixed top-0 left-0 w-full z-[var(--z-navigation)] pointer-events-auto"
-      >
+      <header ref={headerRef} className="nav-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          {/* ── System Identity / Brand Mark ── */}
           <a
             href="#hero"
             className="flex items-center py-1 px-1 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FFAA00] focus-visible:outline-offset-2 opacity-90 hover:opacity-100 transition-opacity"
@@ -105,11 +90,7 @@ export function GlobalNavigation() {
             />
           </a>
 
-          {/* ── Desktop Technical Index Navigation ── */}
-          <nav
-            className="hidden md:flex items-center gap-8"
-            aria-label="Main Navigation"
-          >
+          <nav className="hidden md:flex items-center gap-8" aria-label="Main Navigation">
             {NAV_ITEMS.map((item) => {
               const isActive = activeSection === item.id;
               return (
@@ -117,9 +98,7 @@ export function GlobalNavigation() {
                   key={item.id}
                   href={item.href}
                   className={`group relative flex items-center gap-2 font-mono text-xs tracking-[0.12em] transition-colors duration-200 py-1.5 px-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FFAA00] focus-visible:outline-offset-2 ${
-                    isActive
-                      ? "text-[#FFAA00] font-medium"
-                      : "text-white/40 hover:text-white/80"
+                    isActive ? "text-[#FFAA00] font-medium" : "text-white/40 hover:text-white/80"
                   }`}
                 >
                   <span
@@ -137,7 +116,6 @@ export function GlobalNavigation() {
             })}
           </nav>
 
-          {/* ── Mobile Menu Toggle Button ── */}
           <div className="flex md:hidden items-center">
             <button
               type="button"
@@ -145,11 +123,7 @@ export function GlobalNavigation() {
               className="flex items-center gap-2 font-mono text-[0.7rem] tracking-[0.15em] text-white/70 hover:text-[#FFAA00] border border-white/10 hover:border-[#FFAA00]/40 px-3 py-1.5 rounded-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FFAA00]"
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-menu-drawer"
-              aria-label={
-                mobileMenuOpen
-                  ? "Close System Navigation"
-                  : "Open System Navigation"
-              }
+              aria-label={mobileMenuOpen ? "Close System Navigation" : "Open System Navigation"}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#FFAA00]" />
               <span>{mobileMenuOpen ? "[ CLOSE ]" : "[ SYS.INDEX ]"}</span>
@@ -157,21 +131,16 @@ export function GlobalNavigation() {
           </div>
         </div>
 
-        {/* ── Mobile Navigation Drawer ── */}
         {mobileMenuOpen && (
           <div
             id="mobile-menu-drawer"
-            className="fixed inset-0 top-14 bg-[#050505]/95 backdrop-blur-sm z-50 flex flex-col justify-between p-6 border-t border-white/10 md:hidden"
+            className="fixed inset-0 top-14 z-50 flex flex-col justify-between p-6 border-t border-white/10 md:hidden mobile-drawer"
           >
             <div className="flex flex-col gap-2">
               <p className="font-mono text-[0.65rem] tracking-[0.2em] text-[#FFAA00] uppercase mb-4 opacity-70">
                 CLASSIFIED SYSTEM // NAVIGATION INDEX
               </p>
-
-              <nav
-                aria-label="Mobile Navigation"
-                className="flex flex-col gap-4"
-              >
+              <nav aria-label="Mobile Navigation" className="flex flex-col gap-4">
                 {NAV_ITEMS.map((item) => {
                   const isActive = activeSection === item.id;
                   return (
@@ -186,9 +155,7 @@ export function GlobalNavigation() {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-[#FFAA00]">
-                          {item.code}
-                        </span>
+                        <span className="text-xs text-[#FFAA00]">{item.code}</span>
                         <span>{item.label}</span>
                       </div>
                       {isActive && (
@@ -201,8 +168,6 @@ export function GlobalNavigation() {
                 })}
               </nav>
             </div>
-
-            {/* Drawer Footer Status */}
             <div className="pt-6 border-t border-white/5 flex items-center justify-between font-mono text-[0.65rem] text-white/30 tracking-widest">
               <span>SYS.ID: ZB-2026</span>
               <span>SECURE CHANNEL</span>

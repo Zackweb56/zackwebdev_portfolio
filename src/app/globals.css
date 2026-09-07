@@ -105,6 +105,28 @@
   }
 }
 
+/* ─── Lenis Slow-Motion Smooth Scroll Integration ────────────────────────── */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
 /* ─── Native Cursor Hide Rule (When Custom Cursor Active on Desktop) ──────── */
 html.has-custom-cursor,
 html.has-custom-cursor body,

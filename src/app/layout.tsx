@@ -45,9 +45,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="antialiased font-sans bg-[#050505] text-white">
-        <GlobalEnvironment>
-          <PublicLayoutShell>{children}</PublicLayoutShell>
-        </GlobalEnvironment>
+        <GlobalEnvironment>{children}</GlobalEnvironment>
       </body>
     </html>
   );

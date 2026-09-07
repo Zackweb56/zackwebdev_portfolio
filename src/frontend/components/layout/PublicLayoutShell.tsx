@@ -4,7 +4,7 @@ import { Footer } from "@/frontend/components/layout/Footer";
 import { CustomCursor } from "@/frontend/components/cursor/CustomCursor";
 import { Flashlight } from "@/frontend/components/flashlight";
 
-import { GsapProvider } from "@/frontend/components/providers/GsapProvider";
+import { GsapProvider, SmoothScrollProvider } from "@/frontend/components/providers";
 import { IntroLoader } from "@/frontend/components/loader";
 
 interface PublicLayoutShellProps {
@@ -37,6 +37,9 @@ export function PublicLayoutShell({ children }: PublicLayoutShellProps) {
     <div className="relative flex flex-col min-h-screen w-full overflow-x-hidden">
       {/* ── GSAP Animation Architecture (client-only bootstrap) ── */}
       <GsapProvider />
+
+      {/* ── High-Inertia Slow-Motion Smooth Scroll Engine ── */}
+      <SmoothScrollProvider />
 
       {/* ── Intro Loader / System Boot Sequence ── */}
       <IntroLoader />

@@ -29,7 +29,13 @@ type ViewMode = "slider" | "grid";
  * Cards: collapsed by default, hover to expand full details.
  * Click opens interactive fullscreen terminal/modal with zoom & book navigation.
  */
-export function ProjectsSection({ className = "" }: { className?: string }) {
+export function ProjectsSection({
+  projects: initialProjects,
+  className = "",
+}: {
+  projects?: Project[];
+  className?: string;
+}) {
   const [viewMode, setViewMode] = useState<ViewMode>("slider");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [modalDirection, setModalDirection] = useState<number>(1);
@@ -41,7 +47,7 @@ export function ProjectsSection({ className = "" }: { className?: string }) {
   const dragStartX = useRef(0);
   const dragStartScroll = useRef(0);
 
-  const projects = getAllProjects();
+  const projects = initialProjects && initialProjects.length > 0 ? initialProjects : getAllProjects();
 
   const handleOpenModal = useCallback((project: Project) => {
     setModalDirection(1);

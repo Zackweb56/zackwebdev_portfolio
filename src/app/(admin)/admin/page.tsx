@@ -1,13 +1,17 @@
+import { requireAdminAuth } from "@/backend/dal";
+import { AdminDashboardShell } from "@/frontend/components/admin/AdminDashboardShell";
+
 /**
- * /admin — Dashboard overview
- * Placeholder — implemented in Phase 10.
+ * /admin — Classified Master Administration Portal
+ *
+ * Security:
+ *   - Strictly guarded by the Data Access Layer (`requireAdminAuth()`).
+ *   - Unauthenticated visitors are immediately redirected to `/access_bz_admin`.
+ *   - Authenticated administrators receive the full classified Content Manager Workstation.
  */
-export default function AdminDashboardPage() {
-  return (
-    <div style={{ padding: "2rem" }}>
-      <p style={{ fontFamily: "monospace", color: "#FFAA00", fontSize: "0.75rem" }}>
-        ADMIN // DASHBOARD — placeholder (Phase 10)
-      </p>
-    </div>
-  );
+export default async function AdminPage() {
+  // DAL Security Gate: throws redirect('/access_bz_admin') if unauthenticated
+  const sessionData = await requireAdminAuth();
+
+  return <AdminDashboardShell user={sessionData.user} />;
 }

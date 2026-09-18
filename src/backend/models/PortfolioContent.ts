@@ -10,12 +10,11 @@ import mongoose, { Schema, Model } from "mongoose";
 
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 
+export type LocalizedString = Record<string, string>;
+
 const LocalizedStringSchema = new Schema(
-  {
-    fr: { type: String, default: "" },
-    en: { type: String, default: "" },
-  },
-  { _id: false }
+  {},
+  { _id: false, strict: false }
 );
 
 // Hero
@@ -88,6 +87,7 @@ const ProfileSchema = new Schema(
       label: LocalizedStringSchema,
       href: { type: String, default: "/assets/Zakariyae_Boughaba_CV.pdf" },
       downloadFilename: { type: String, default: "Zakariyae_Boughaba_FullStack_Resume.pdf" },
+      cvFiles: LocalizedStringSchema,
     },
   },
   { _id: false }
@@ -98,7 +98,18 @@ const TechSchema = new Schema(
   {
     name: { type: String, required: true },
     category: { type: String, enum: ["backend", "frontend", "database", "tools", "other"], default: "other" },
+    icon: { type: String, default: "" },
     highlight: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
+// Project Gallery Item
+const GalleryItemSchema = new Schema(
+  {
+    src: { type: String, default: "" },
+    alt: LocalizedStringSchema,
+    caption: LocalizedStringSchema,
   },
   { _id: false }
 );
@@ -114,6 +125,9 @@ const CaseStudySchema = new Schema(
     architectureHighlights: { type: [String], default: [] },
     keyFeatures: { type: [String], default: [] },
     results: LocalizedStringSchema,
+    techStack: LocalizedStringSchema,
+    challenges: LocalizedStringSchema,
+    learnings: LocalizedStringSchema,
   },
   { _id: false }
 );
@@ -131,6 +145,8 @@ const ProjectSchema = new Schema(
     fullDescription: LocalizedStringSchema,
     thumbnailSrc: { type: String, default: "" },
     thumbnailAlt: LocalizedStringSchema,
+    gallery: [GalleryItemSchema],
+    tags: { type: [String], default: [] },
     technologies: [TechSchema],
     links: {
       github: { type: String, default: "" },
@@ -141,6 +157,7 @@ const ProjectSchema = new Schema(
     metadata: {
       evidenceId: { type: String, default: "" },
       year: { type: String, default: "" },
+      duration: { type: String, default: "" },
       client: { type: String, default: "" },
       featured: { type: Boolean, default: false },
       order: { type: Number, default: 999 },
@@ -182,9 +199,9 @@ const ContactSchema = new Schema(
 
 interface IPortfolioContent {
   _id?: mongoose.Types.ObjectId;
-  hero: typeof HeroSchema;
-  profile: typeof ProfileSchema;
-  contact: typeof ContactSchema;
+  hero: any;
+  profile: any;
+  contact: any;
   updatedAt?: Date;
   updatedBy?: string;
 }

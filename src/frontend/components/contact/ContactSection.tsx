@@ -6,9 +6,19 @@ import { ContactForm } from "./ContactForm";
 import { SocialIcons } from "@/frontend/components/ui/SocialIcons";
 import { playSound } from "@/frontend/lib/sound";
 
-export function ContactSection() {
+interface ContactSectionProps {
+  content?: {
+    email?: string;
+    headline?: string;
+    availabilityBadge?: string;
+  } | null;
+}
+
+export function ContactSection({ content }: ContactSectionProps = {}) {
   const [copied, setCopied] = useState(false);
-  const emailAddress = "zackwebdev56@gmail.com";
+  const emailAddress = content?.email || "zackwebdev56@gmail.com";
+  const headline = content?.headline || "What if we worked together?";
+  const availabilityBadge = content?.availabilityBadge || "AVAILABLE FOR WORK";
 
   const handleCopyEmail = () => {
     playSound("click");
@@ -42,12 +52,12 @@ export function ContactSection() {
           {/* Availability badge */}
           <div className="inline-flex items-center gap-2 font-mono text-[0.62rem] tracking-[0.2em] uppercase text-white/50 bg-white/[0.02] border border-white/10 px-3 py-1">
             <span className="w-1.5 h-1.5 rounded-full bg-[#44FF88] animate-pulse" />
-            <span>AVAILABLE FOR WORK</span>
+            <span>{availabilityBadge}</span>
           </div>
 
           {/* Headline */}
           <p className="font-sans font-extrabold text-3xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-tight mt-2 max-w-2xl">
-            What if we worked together?
+            {headline}
           </p>
 
           {/* Direct Email Action */}

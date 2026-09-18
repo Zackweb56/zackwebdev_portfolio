@@ -32,6 +32,7 @@ export type MediaFallbackVariant =
 export interface ProjectTechnology {
   name: string;
   category: TechCategory;
+  icon?: string;
   highlight?: boolean;
 }
 
@@ -61,12 +62,16 @@ export interface ProjectCaseStudy {
   architectureHighlights: string[];
   keyFeatures: string[];
   results: string;
+  techStack?: string;
+  challenges?: string;
+  learnings?: string;
 }
 
 export interface ProjectMetadata {
   evidenceId: string; // e.g. "EVIDENCE // 01"
   client?: string;
   year: string;
+  duration?: string;
   featured: boolean;
   order: number;
 }
@@ -82,6 +87,7 @@ export interface Project {
   fullDescription: string;
   thumbnail: ProjectMedia;
   gallery?: ProjectMedia[];
+  tags?: string[];
   technologies: ProjectTechnology[];
   links: ProjectLinks;
   caseStudy?: ProjectCaseStudy;

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import {
   Save,
   CheckCircle2,
@@ -11,17 +12,20 @@ import {
   ChevronUp,
   Loader2,
   RefreshCw,
+  UploadCloud,
+  Trash2,
 } from "lucide-react";
 import { AdminContentSection } from "./AdminSidebar";
 import { defaultHeroContent } from "@/frontend/lib/heroContent";
 import { defaultProfileContent } from "@/frontend/lib/profileContent";
+import { uploadToCloudinary } from "@/frontend/lib/cloudinaryUpload";
+import { AdminProjectsManager } from "./AdminProjectsManager";
+
+import { LanguageItem } from "@/shared/constants/languages";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface Localized {
-  fr: string;
-  en: string;
-}
+export type Localized = Record<string, string>;
 
 interface HeroData {
   availability: Localized;
@@ -76,6 +80,7 @@ interface ProfileData {
     label: Localized;
     href: string;
     downloadFilename: string;
+    cvFiles?: Record<string, string>;
   };
 }
 
@@ -141,6 +146,7 @@ const INITIAL_PROFILE: ProfileData = {
     label: { fr: "VOIR ET TÉLÉCHARGER CV", en: defaultProfileContent.resume.label },
     href: defaultProfileContent.resume.href,
     downloadFilename: defaultProfileContent.resume.downloadFilename,
+    cvFiles: {},
   },
 };
 
@@ -170,7 +176,7 @@ function LocalizedField({
   label: string;
   value: Localized;
   onChange: (val: Localized) => void;
-  lang: "fr" | "en";
+  lang: string;
   placeholder?: string;
   multiline?: boolean;
 }) {
@@ -272,9 +278,9 @@ function StringListEditor({
 
 // ─── Hero Editor ──────────────────────────────────────────────────────────────
 
-function HeroEditor({ lang }: { lang: "fr" | "en" }) {
+function HeroEditor({ lang }: { lang: string }) {
   const [data, setData] = useState<HeroData>(INITIAL_HERO);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -392,9 +398,15 @@ function HeroEditor({ lang }: { lang: "fr" | "en" }) {
 
 // ─── Profile Editor ───────────────────────────────────────────────────────────
 
-function ProfileEditor({ lang }: { lang: "fr" | "en" }) {
+function ProfileEditor({
+  lang,
+  languages = [],
+}: {
+  lang: string;
+  languages?: LanguageItem[];
+}) {
   const [data, setData] = useState<ProfileData>(INITIAL_PROFILE);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -496,16 +508,14 @@ function ProfileEditor({ lang }: { lang: "fr" | "en" }) {
                 className="w-full bg-[#080808] border border-white/15 focus:border-[#FFAA00] text-white font-mono text-xs sm:text-sm px-3.5 py-2.5 outline-none"
               />
             </div>
-            <div>
-              <label className="block font-mono text-[10px] sm:text-xs uppercase text-white/40 mb-1.5">PROFILE IMAGE URL</label>
-              <input
-                type="text"
-                value={data.identity.profileImage}
-                onChange={(e) => setData({ ...data, identity: { ...data.identity, profileImage: e.target.value } })}
-                className="w-full bg-[#080808] border border-white/15 focus:border-[#FFAA00] text-white font-mono text-xs sm:text-sm px-3.5 py-2.5 outline-none"
-              />
-            </div>
           </div>
+
+          <ProfileImageUploader
+            value={data.identity.profileImage}
+            onChange={(url) =>
+              setData({ ...data, identity: { ...data.identity, profileImage: url } })
+            }
+          />
 
           <LocalizedField
             label="AVAILABILITY BADGE"
@@ -644,13 +654,23 @@ function ProfileEditor({ lang }: { lang: "fr" | "en" }) {
           <StringListEditor label="SOFT SKILLS" items={data.softSkills} onChange={(v) => setData({ ...data, softSkills: v })} />
         </div>
       </Accordion>
+
+      {/* Resume & CV per Language */}
+      <Accordion open={openSection === "resume"} onToggle={() => toggle("resume")} label="RESUME & CV [PER_LOCALE_FILES]">
+        <CvUploader
+          resume={data.resume}
+          onChange={(resume) => setData({ ...data, resume })}
+          languages={languages}
+          lang={lang}
+        />
+      </Accordion>
     </div>
   );
 }
 
 // ─── Contact Editor ───────────────────────────────────────────────────────────
 
-function ContactEditor({ lang }: { lang: "fr" | "en" }) {
+function ContactEditor({ lang }: { lang: string }) {
   const [data, setData] = useState<ContactData>(INITIAL_CONTACT);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -782,150 +802,368 @@ function ContactEditor({ lang }: { lang: "fr" | "en" }) {
   );
 }
 
-// ─── Projects Editor ──────────────────────────────────────────────────────────
+// ─── Profile Image Uploader Sub-Component ─────────────────────────────────────
 
-function ProjectsEditor({ lang }: { lang: "fr" | "en" }) {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<string | null>(null);
+function ProfileImageUploader({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp", "image/avif"].includes(file.type)) {
+      setError("Supported formats: WebP, JPEG, PNG, AVIF.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("File exceeds 5 MB limit.");
+      return;
+    }
+
+    setUploading(true);
+    setProgress(0);
     setError("");
+
     try {
-      const res = await fetch("/api/admin/content/projects");
-      if (!res.ok) throw new Error(`HTTP_${res.status}`);
-      const json = await res.json();
-      setProjects(json.projects || []);
-    } catch {
-      setError("Could not load projects from Atlas. Ready to retry.");
+      const { secureUrl } = await uploadToCloudinary(file, "portfolio/profile", (pct) =>
+        setProgress(pct)
+      );
+      // Persist to server profile endpoint
+      const res = await fetch("/api/admin/uploads/profile-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ secureUrl }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to persist profile image to database");
+      }
+      onChange(secureUrl);
+    } catch (err: any) {
+      setError(err.message || "Failed to upload image");
     } finally {
-      setLoading(false);
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
-        <div>
-          <div className="font-mono text-sm sm:text-base font-bold text-white flex items-center gap-2">
-            <span>Projects / Evidence</span>
-            <span className="text-[#FFAA00] text-xs">[PROJECT_EVIDENCE]</span>
-          </div>
-          <p className="font-mono text-[10px] sm:text-xs text-white/40 mt-0.5">
-            {projects.length} PROJECT(S) CONFIGURED IN MONGODB ATLAS
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={fetchData}
-          disabled={loading}
-          className="self-start sm:self-auto inline-flex items-center gap-1.5 border border-white/15 px-3 py-1.5 font-mono text-xs text-white/60 hover:text-white hover:border-[#FFAA00] transition-colors cursor-pointer"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#FFAA00]" : ""}`} />
-          <span>REFRESH</span>
-        </button>
+    <div className="border border-white/10 p-3 sm:p-4 bg-[#080808] space-y-3">
+      <div className="flex items-center justify-between">
+        <label className="block font-mono text-[10px] sm:text-xs uppercase text-white/40">
+          PROFILE PHOTO (CLOUDINARY DIRECT UPLOAD)
+        </label>
+        {value && (
+          <span className="font-mono text-[10px] text-emerald-400">ACTIVE PHOTO</span>
+        )}
       </div>
 
-      {error && (
-        <div className="border border-amber-500/30 bg-amber-950/20 p-3 font-mono text-xs text-amber-300 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{error}</span>
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <div className="relative w-24 h-24 sm:w-28 sm:h-28 bg-black border border-white/15 overflow-hidden shrink-0">
+          {value ? (
+            <Image src={value} alt="Profile preview" fill className="object-cover" unoptimized />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white/20 font-mono text-[10px]">
+              NO PHOTO
+            </div>
+          )}
         </div>
-      )}
 
-      <div className="space-y-4">
-        {projects.map((proj, i) => (
-          <div key={proj._id || i} className="border border-white/10 bg-[#080808] p-3.5 sm:p-5 space-y-3.5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs text-[#FFAA00] font-bold">{proj.metadata?.evidenceId || `PROJ ${i + 1}`}</span>
-                <span className={`font-mono text-[9px] px-2 py-0.5 ${proj.published ? "bg-emerald-900/40 text-emerald-400 border border-emerald-500/30" : "bg-white/5 text-white/40 border border-white/10"}`}>
-                  {proj.published ? "PUBLISHED" : "DRAFT"}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const n = [...projects];
-                  n[i] = { ...n[i], published: !n[i].published };
-                  setProjects(n);
-                }}
-                className="font-mono text-[10px] text-white/50 hover:text-[#FFAA00] transition-colors cursor-pointer border border-white/10 px-2 py-1"
-              >
-                TOGGLE PUBLISH
-              </button>
+        <div className="flex-1 w-full space-y-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/jpeg,image/png,image/webp,image/avif"
+            className="hidden"
+          />
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="w-full border border-dashed border-[#FFAA00]/40 bg-[#FFAA00]/5 hover:bg-[#FFAA00]/10 text-[#FFAA00] font-mono text-xs py-3 px-4 flex items-center justify-center gap-2 cursor-pointer transition-colors"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>UPLOADING TO CLOUDINARY ({progress}%)...</span>
+              </>
+            ) : (
+              <>
+                <UploadCloud className="w-4 h-4" />
+                <span>UPLOAD NEW PHOTO (MAX 5 MB)</span>
+              </>
+            )}
+          </button>
+
+          {error && (
+            <div className="font-mono text-[11px] text-red-400 flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>{error}</span>
             </div>
+          )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block font-mono text-[10px] uppercase text-white/40 mb-1">TITLE ({lang.toUpperCase()})</label>
-                <input
-                  type="text"
-                  value={proj.title?.[lang] || ""}
-                  onChange={(e) => { const n = [...projects]; n[i] = { ...n[i], title: { ...n[i].title, [lang]: e.target.value } }; setProjects(n); }}
-                  className="w-full bg-black border border-white/15 focus:border-[#FFAA00] text-white font-mono text-xs px-3 py-2 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[10px] uppercase text-white/40 mb-1">CLIENT / DOMAIN</label>
-                <input
-                  type="text"
-                  value={proj.metadata?.client || ""}
-                  onChange={(e) => { const n = [...projects]; n[i] = { ...n[i], metadata: { ...n[i].metadata, client: e.target.value } }; setProjects(n); }}
-                  className="w-full bg-black border border-white/15 focus:border-[#FFAA00] text-white font-mono text-xs px-3 py-2 outline-none"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-mono text-[10px] uppercase text-white/40 mb-1">SHORT DESCRIPTION ({lang.toUpperCase()})</label>
-              <textarea
-                rows={2}
-                value={proj.shortDescription?.[lang] || ""}
-                onChange={(e) => { const n = [...projects]; n[i] = { ...n[i], shortDescription: { ...n[i].shortDescription, [lang]: e.target.value } }; setProjects(n); }}
-                className="w-full bg-black border border-white/15 focus:border-[#FFAA00] text-white font-mono text-xs px-3 py-2 outline-none resize-none"
-              />
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-white/5">
-              <div className="flex flex-wrap gap-1">
-                {(proj.technologies || []).slice(0, 4).map((t: any, ti: number) => (
-                  <span key={ti} className="font-mono text-[9px] border border-white/10 px-1.5 py-0.5 text-white/50">{t.name}</span>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                disabled={saving === proj._id}
-                onClick={async () => {
-                  setSaving(proj._id);
-                  try {
-                    await fetch(`/api/admin/content/projects/${proj._id}`, {
-                      method: "PUT",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(proj),
-                    });
-                  } catch {
-                    setError("Project save failed");
-                  } finally {
-                    setSaving(null);
-                  }
-                }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-[#FFAA00] hover:bg-[#ffbe33] text-[#050505] font-mono text-xs font-bold uppercase px-4 py-2 transition-all cursor-pointer disabled:opacity-50"
-              >
-                {saving === proj._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                <span>COMMIT PROJECT</span>
-              </button>
-            </div>
+          <div>
+            <label className="block font-mono text-[9px] uppercase text-white/30 mb-1">
+              OR DIRECT URL
+            </label>
+            <input
+              type="text"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder="https://res.cloudinary.com/..."
+              className="w-full bg-black border border-white/10 text-white font-mono text-xs px-2.5 py-1.5 outline-none focus:border-[#FFAA00]"
+            />
           </div>
-        ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── CV Uploader Sub-Component ────────────────────────────────────────────────
+
+function CvUploader({
+  resume,
+  onChange,
+  languages = [],
+  lang,
+}: {
+  resume: ProfileData["resume"];
+  onChange: (resume: ProfileData["resume"]) => void;
+  languages?: LanguageItem[];
+  lang: string;
+}) {
+  const [uploadingLocale, setUploadingLocale] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState("");
+  const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const activeLangs =
+    languages.length > 0
+      ? languages.filter((l) => l.isActive)
+      : [
+          { code: "en", name: "English", flag: "🇬🇧", isActive: true },
+          { code: "fr", name: "Français", flag: "🇫🇷", isActive: true },
+        ];
+
+  const handleUploadCv = async (code: string, file: File) => {
+    if (
+      ![
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ].includes(file.type)
+    ) {
+      setError("Only PDF and DOCX documents are accepted.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File exceeds 10 MB limit.");
+      return;
+    }
+
+    setUploadingLocale(code);
+    setProgress(0);
+    setError("");
+
+    try {
+      const { secureUrl } = await uploadToCloudinary(file, "portfolio/cv", (pct) =>
+        setProgress(pct)
+      );
+      const res = await fetch("/api/admin/uploads/cv", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          locale: code,
+          secureUrl,
+          originalName: file.name,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to persist CV file");
+      }
+      const data = await res.json();
+      onChange({
+        ...resume,
+        cvFiles: data.cvFiles || { ...(resume.cvFiles || {}), [code]: secureUrl },
+      });
+    } catch (err: any) {
+      setError(err.message || "Failed to upload CV");
+    } finally {
+      setUploadingLocale(null);
+    }
+  };
+
+  const handleRemoveCv = async (code: string) => {
+    try {
+      const res = await fetch(`/api/admin/uploads/cv?locale=${code}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to remove CV");
+      const nextCv = { ...(resume.cvFiles || {}) };
+      delete nextCv[code];
+      onChange({ ...resume, cvFiles: nextCv });
+    } catch (err: any) {
+      setError(err.message || "Failed to remove CV");
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="border border-white/10 p-3 sm:p-4 bg-[#080808] space-y-3">
+        <span className="font-mono text-xs font-bold text-[#FFAA00] block">
+          PER-LOCALE CURRICULUM VITAE UPLOADS (CLOUDINARY)
+        </span>
+        <p className="font-mono text-[11px] text-white/50">
+          Upload dedicated CV documents for each active portfolio language. If a language does not have a CV uploaded, the public portfolio will display a subtle &quot;coming soon&quot; status pill.
+        </p>
+
+        {error && (
+          <div className="font-mono text-xs text-red-400 flex items-center gap-1.5 p-2 bg-red-950/20 border border-red-500/30">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <div className="space-y-3 pt-2">
+          {activeLangs.map((l) => {
+            const code = l.code.toLowerCase();
+            const currentUrl = resume.cvFiles?.[code];
+            const isUploading = uploadingLocale === code;
+
+            return (
+              <div
+                key={code}
+                className="border border-white/10 bg-black p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono text-xs"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">{l.flag}</span>
+                    <span className="font-bold text-white uppercase">
+                      [{code.toUpperCase()}] {l.name}
+                    </span>
+                    {currentUrl ? (
+                      <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-bold">
+                        UPLOADED
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.5 bg-amber-500/10 text-amber-400/70 border border-amber-500/20 text-[9px]">
+                        NOT CONFIGURED
+                      </span>
+                    )}
+                  </div>
+                  {currentUrl && (
+                    <a
+                      href={currentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#FFAA00] hover:underline text-[10px] truncate block max-w-md"
+                    >
+                      {currentUrl}
+                    </a>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    ref={(el) => {
+                      fileInputs.current[code] = el;
+                    }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUploadCv(code, file);
+                      e.target.value = "";
+                    }}
+                    accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    className="hidden"
+                  />
+
+                  <button
+                    type="button"
+                    disabled={isUploading}
+                    onClick={() => fileInputs.current[code]?.click()}
+                    className="px-3 py-1.5 bg-white/10 hover:bg-[#FFAA00] hover:text-black border border-white/15 text-white font-bold text-[10px] flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>UPLOADING ({progress}%)...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-3 h-3" />
+                        <span>{currentUrl ? "REPLACE CV" : "UPLOAD CV (.PDF / .DOCX)"}</span>
+                      </>
+                    )}
+                  </button>
+
+                  {currentUrl && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCv(code)}
+                      className="p-1.5 text-white/40 hover:text-red-400 border border-white/10 hover:border-red-500/40 transition-colors cursor-pointer"
+                      title="Remove CV"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Global Fallback & CTA Label */}
+      <div className="border border-white/10 p-3 sm:p-4 bg-[#080808] space-y-3 font-mono text-xs">
+        <span className="text-white/60 font-bold block text-[11px]">
+          CV ACTION BUTTON LABELS & LEGACY FALLBACK
+        </span>
+
+        <LocalizedField
+          label="CTA BUTTON LABEL"
+          value={resume.label}
+          onChange={(v) => onChange({ ...resume, label: v })}
+          lang={lang}
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-white/40 mb-1 text-[10px] uppercase">
+              LEGACY FALLBACK CV URL (GLOBAL)
+            </label>
+            <input
+              type="text"
+              value={resume.href}
+              onChange={(e) => onChange({ ...resume, href: e.target.value })}
+              className="w-full bg-black border border-white/15 px-3 py-2 text-white outline-none focus:border-[#FFAA00]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-white/40 mb-1 text-[10px] uppercase">
+              DOWNLOAD FILENAME
+            </label>
+            <input
+              type="text"
+              value={resume.downloadFilename}
+              onChange={(e) => onChange({ ...resume, downloadFilename: e.target.value })}
+              className="w-full bg-black border border-white/15 px-3 py-2 text-white outline-none focus:border-[#FFAA00]"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1040,28 +1278,68 @@ function Accordion({
 // ─── Main Export ──────────────────────────────────────────────────────────────
 
 interface AdminContentEditorProps {
-  currentLanguage: "FR" | "EN";
+  currentLanguage: string;
+  onLanguageChange?: (lang: string) => void;
+  languages?: LanguageItem[];
   activeSection: AdminContentSection;
   adminEmail: string;
 }
 
-export function AdminContentEditor({ currentLanguage, activeSection }: AdminContentEditorProps) {
-  const lang = currentLanguage.toLowerCase() as "fr" | "en";
+export function AdminContentEditor({
+  currentLanguage,
+  onLanguageChange,
+  languages = [],
+  activeSection,
+}: AdminContentEditorProps) {
+  const lang = currentLanguage.toLowerCase();
+  const activeLangs = languages.filter((l) => l.isActive);
 
   return (
-    <div className="flex-1 bg-[#050505] p-3 sm:p-6 lg:p-8 overflow-y-auto max-w-5xl w-full mx-auto">
-      {/* Dynamic language indicator pill */}
-      <div className="flex items-center justify-between border border-white/10 bg-[#080808] px-3 py-2 font-mono text-[10px] sm:text-xs text-white/60 mb-6">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#FFAA00] animate-pulse shrink-0" />
-          <span>Active Language: <strong className="text-[#FFAA00]">{currentLanguage}</strong></span>
+    <div className="flex-1 bg-[#050505] p-3 sm:p-6 lg:p-8 overflow-y-auto max-w-5xl w-full mx-auto space-y-6">
+      {/* Dynamic language selection tabs bar */}
+      <div className="border border-white/10 bg-[#080808] p-3 sm:p-4 space-y-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#FFAA00] animate-pulse shrink-0" />
+            <span className="font-mono text-xs text-white">
+              Editing Locale: <strong className="text-[#FFAA00] font-bold">[{currentLanguage}]</strong>
+            </span>
+          </div>
+          <span className="text-white/40 text-[10px] font-mono">
+            DYNAMIC MULTI-LOCALE CMS // MONGO ATLAS
+          </span>
         </div>
-        <span className="text-white/40 text-[9px] hidden sm:inline">DUAL-LOCALE MONGODB ATLAS CMS</span>
+
+        {/* Quick Locale Pills */}
+        {activeLangs.length > 0 && onLanguageChange && (
+          <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-white/5">
+            <span className="font-mono text-[9px] text-white/40 uppercase mr-1">SWITCH:</span>
+            {activeLangs.map((l) => {
+              const isSelected = l.code.toUpperCase() === currentLanguage.toUpperCase();
+              return (
+                <button
+                  key={l.code}
+                  type="button"
+                  onClick={() => onLanguageChange(l.code.toUpperCase())}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 font-mono text-[10px] font-bold transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-[#FFAA00] text-black"
+                      : "border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/30"
+                  }`}
+                >
+                  <span className="text-xs">{l.flag}</span>
+                  <span>{l.code.toUpperCase()}</span>
+                  <span className="text-[9px] opacity-70">({l.name})</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {activeSection === "hero" && <HeroEditor lang={lang} />}
-      {activeSection === "about" && <ProfileEditor lang={lang} />}
-      {activeSection === "projects" && <ProjectsEditor lang={lang} />}
+      {activeSection === "about" && <ProfileEditor lang={lang} languages={languages} />}
+      {activeSection === "projects" && <AdminProjectsManager lang={lang} languages={languages} />}
       {activeSection === "contact" && <ContactEditor lang={lang} />}
     </div>
   );

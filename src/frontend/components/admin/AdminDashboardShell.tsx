@@ -1,11 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AdminHeader } from "./AdminHeader";
 import { AdminSidebar, AdminPrimaryNav, AdminContentSection } from "./AdminSidebar";
 import { AdminContentEditor } from "./AdminContentEditor";
+import { AdminProjectsManager } from "./AdminProjectsManager";
+import { AdminLanguageManager } from "./AdminLanguageManager";
 import { AdminSessionUser } from "@/backend/dal";
-import { Database, FolderGit2, FileText, Image as ImageIcon, Sliders, BarChart3 } from "lucide-react";
+import { LanguageItem } from "@/shared/constants/languages";
+import { FolderGit2, FileText, Image as ImageIcon, Sliders, BarChart3, Globe } from "lucide-react";
 
 interface AdminDashboardShellProps {
   user: AdminSessionUser;
@@ -19,10 +22,37 @@ const MOBILE_SECTIONS: { id: AdminContentSection; label: string; code: string }[
 ];
 
 export function AdminDashboardShell({ user }: AdminDashboardShellProps) {
-  const [currentLanguage, setCurrentLanguage] = useState<"FR" | "EN">("FR");
+  const [languages, setLanguages] = useState<LanguageItem[]>([]);
+  const [currentLanguage, setCurrentLanguage] = useState<string>("FR");
   const [activePrimaryNav, setActivePrimaryNav] = useState<AdminPrimaryNav>("SITE_CONTENT");
   const [activeContentSection, setActiveContentSection] = useState<AdminContentSection>("about");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Fetch languages from backend
+  const fetchLanguages = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/languages");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.languages && Array.isArray(data.languages)) {
+          setLanguages(data.languages);
+          // If current language is not among active, fallback to default or first active
+          const active = data.languages.filter((l: LanguageItem) => l.isActive);
+          const found = active.find((l: LanguageItem) => l.code.toUpperCase() === currentLanguage.toUpperCase());
+          if (!found && active.length > 0) {
+            const def = active.find((l: LanguageItem) => l.isDefault) || active[0];
+            setCurrentLanguage(def.code.toUpperCase());
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[ADMIN_FETCH_LANGUAGES_ERROR]", err);
+    }
+  }, [currentLanguage]);
+
+  useEffect(() => {
+    fetchLanguages();
+  }, [fetchLanguages]);
 
   return (
     <div className="flex flex-col h-[100dvh] w-full bg-[#050505] text-white overflow-hidden font-sans">
@@ -30,6 +60,7 @@ export function AdminDashboardShell({ user }: AdminDashboardShellProps) {
       <AdminHeader
         currentLanguage={currentLanguage}
         onLanguageChange={setCurrentLanguage}
+        languages={languages}
         activeSectionTitle={
           activePrimaryNav === "SITE_CONTENT"
             ? `SITE_CONTENT // ${activeContentSection.toUpperCase()}`
@@ -87,14 +118,32 @@ export function AdminDashboardShell({ user }: AdminDashboardShellProps) {
           {activePrimaryNav === "SITE_CONTENT" ? (
             <AdminContentEditor
               currentLanguage={currentLanguage}
+              onLanguageChange={setCurrentLanguage}
+              languages={languages}
               activeSection={activeContentSection}
               adminEmail={user.email}
             />
+          ) : activePrimaryNav === "LANGUAGES" ? (
+            <AdminLanguageManager
+              languages={languages}
+              onRefreshLanguages={fetchLanguages}
+              onSelectLanguageForEdit={(code) => {
+                setCurrentLanguage(code.toUpperCase());
+                setActivePrimaryNav("SITE_CONTENT");
+              }}
+              adminEmail={user.email}
+            />
+          ) : activePrimaryNav === "PROJECT_EVIDENCE" ? (
+            <div className="flex-1 p-4 sm:p-8">
+              <AdminProjectsManager
+                lang={currentLanguage.toLowerCase()}
+                languages={languages}
+              />
+            </div>
           ) : (
             <div className="flex-1 p-6 sm:p-10 flex flex-col items-center justify-center font-mono text-center space-y-4">
               <div className="p-4 border border-white/10 bg-[#080808]">
                 {activePrimaryNav === "CV_DATA_CORE" && <FileText className="w-8 h-8 text-[#FFAA00] mx-auto" />}
-                {activePrimaryNav === "PROJECT_EVIDENCE" && <FolderGit2 className="w-8 h-8 text-[#FFAA00] mx-auto" />}
                 {activePrimaryNav === "MEDIA_LIBRARY" && <ImageIcon className="w-8 h-8 text-[#FFAA00] mx-auto" />}
                 {activePrimaryNav === "SYSTEM_CONFIG" && <Sliders className="w-8 h-8 text-[#FFAA00] mx-auto" />}
                 {activePrimaryNav === "VISITOR_STATS" && <BarChart3 className="w-8 h-8 text-[#FFAA00] mx-auto" />}

@@ -4,7 +4,6 @@ import React, { useRef } from "react";
 import Image from "next/image";
 
 import {
-  defaultProfileContent,
   ProfileContent,
 } from "@/frontend/lib/profileContent";
 import { useGSAP } from "@/frontend/hooks/useGSAP";
@@ -12,7 +11,7 @@ import { buildProfileReveal } from "@/frontend/animations/profile/profileReveal"
 import { playSound } from "@/frontend/lib/sound";
 
 interface ProfileSectionProps {
-  content?: ProfileContent;
+  content?: ProfileContent | null;
   className?: string;
 }
 
@@ -25,7 +24,7 @@ interface ProfileSectionProps {
  *   - Card 3: Technical skill badges with audio hover feedback, soft skills, and Resume view/download action.
  */
 export function ProfileSection({
-  content = defaultProfileContent,
+  content,
   className = "",
 }: ProfileSectionProps) {
   const containerRef = useRef<HTMLElement>(null);
@@ -49,6 +48,29 @@ export function ProfileSection({
     },
     { scope: containerRef, dependencies: [] }
   );
+
+  // ── Null guard: no profile content from DB ─────────────────────────────────
+  if (!content) {
+    return (
+      <section
+        id="profile"
+        className={`relative min-h-screen w-full flex flex-col justify-center py-16 lg:py-24 px-4 sm:px-6 lg:px-10 border-t border-white/5 bg-[#050505] ${className}`}
+        aria-label="Profile — Subject Dossier"
+      >
+        <div className="w-full max-w-7xl mx-auto flex flex-col gap-4 items-center justify-center min-h-[40vh]">
+          <div className="inline-flex items-center gap-2 px-4 py-2 border border-amber-500/40 bg-amber-500/[0.06]">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" aria-hidden="true" />
+            <span className="font-mono text-[0.65rem] tracking-[0.2em] text-amber-300 uppercase">
+              [ PROFILE DATA UNAVAILABLE ]
+            </span>
+          </div>
+          <p className="font-mono text-xs text-white/40 tracking-wider text-center">
+            Profile content not yet configured — add it via the admin panel.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -150,7 +172,7 @@ export function ProfileSection({
                 </div>
                 <div>
                   <span className="text-white/35 text-[0.6rem] block uppercase">// LANGUAGES</span>
-                  <span className="text-white/90 text-[0.68rem]">AR · EN (B1) · FR (A2)</span>
+                  <span className="text-white/90 text-[0.68rem]">{content.identity.languages.length > 0 ? content.identity.languages.join(" · ") : "—"}</span>
                 </div>
               </div>
             </div>
@@ -339,36 +361,48 @@ export function ProfileSection({
 
             {/* Resume / CV CTA Button */}
             <div className="pt-4 border-t border-white/10 flex flex-col gap-2">
-              <a
-                href={content.resume.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                download={content.resume.downloadFilename}
-                onMouseEnter={() => playSound("hover")}
-                onClick={() => playSound("open")}
-                className="w-full py-3 px-4 border border-[#FFAA00] bg-[#FFAA00]/10 hover:bg-[#FFAA00] hover:text-[#050505] text-[#FFAA00] font-mono text-xs font-bold tracking-widest uppercase transition-all flex items-center justify-center gap-2 rounded-xs group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#FFAA00]"
-                aria-label="View and download full CV/Resume"
-              >
-                <span>[ {content.resume.label} ]</span>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="transition-transform group-hover:translate-y-0.5"
-                  aria-hidden="true"
+              {content.resume.isAvailable !== false && content.resume.href ? (
+                <a
+                  href={content.resume.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={content.resume.downloadFilename}
+                  onMouseEnter={() => playSound("hover")}
+                  onClick={() => playSound("open")}
+                  className="w-full py-3 px-4 border border-[#FFAA00] bg-[#FFAA00]/10 hover:bg-[#FFAA00] hover:text-[#050505] text-[#FFAA00] font-mono text-xs font-bold tracking-widest uppercase transition-all flex items-center justify-center gap-2 rounded-xs group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#FFAA00]"
+                  aria-label="View and download full CV/Resume"
                 >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-              </a>
+                  <span>[ {content.resume.label} ]</span>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="transition-transform group-hover:translate-y-0.5"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </a>
+              ) : (
+                <div
+                  className="w-full py-3 px-4 border border-amber-500/30 bg-amber-500/10 text-amber-300 font-mono text-xs text-center flex items-center justify-center gap-2 rounded-xs select-none"
+                  role="status"
+                >
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" aria-hidden="true" />
+                  <span>
+                    [ CV not yet available in {(content.resume.locale || "").toUpperCase()} — coming soon. ]
+                  </span>
+                </div>
+              )}
               <span className="font-mono text-[0.55rem] text-center text-white/35">
-                PDF FORMAT · COMPLETE EVIDENCE & PROJECT ARCHIVES
+                PDF / DOCX FORMAT · COMPLETE EVIDENCE & PROJECT ARCHIVES
               </span>
             </div>
           </div>

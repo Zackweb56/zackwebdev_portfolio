@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import Image from "next/image";
 import { Project } from "@/frontend/types/project";
 import { ProjectMediaFallback } from "./ProjectMediaFallback";
 import { getAdjacentProjects } from "@/frontend/lib/projects/registry";
@@ -582,15 +583,59 @@ export function ProjectDetailModal({
 
               {/* Media Component */}
               <div className="relative w-full aspect-video min-h-[260px] sm:min-h-[360px] transition-transform duration-700 ease-out group-hover:scale-[1.02]">
-                <ProjectMediaFallback
-                  title={project.shortTitle ?? project.title}
-                  evidenceId={project.metadata.evidenceId}
-                  category={categoryLabel.toUpperCase()}
-                  variant={project.thumbnail.fallbackVariant ?? "schematic"}
-                  className="w-full h-full !min-h-0 !border-0"
-                />
+                {project.thumbnail.src ? (
+                  <Image
+                    src={project.thumbnail.src}
+                    alt={project.thumbnail.alt || project.title}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <ProjectMediaFallback
+                    title={project.shortTitle ?? project.title}
+                    evidenceId={project.metadata.evidenceId}
+                    category={categoryLabel.toUpperCase()}
+                    variant={project.thumbnail.fallbackVariant ?? "schematic"}
+                    className="w-full h-full !min-h-0 !border-0"
+                  />
+                )}
               </div>
             </div>
+
+            {/* Evidence Gallery Grid */}
+            {project.gallery && project.gallery.length > 0 && (
+              <div className="flex flex-col gap-3 modal-stagger-item">
+                <span className="font-mono text-[0.6rem] tracking-[0.2em] text-[#FFAA00] uppercase font-bold">
+                  &gt;&gt; EVIDENCE_GALLERY // ASSET_ARCHIVES:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {project.gallery.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="border border-white/10 bg-[#080808] p-2 flex flex-col gap-1.5 group hover:border-[#FFAA00]/40 transition-colors"
+                    >
+                      <div className="relative aspect-video w-full bg-black overflow-hidden">
+                        {img.src && (
+                          <Image
+                            src={img.src}
+                            alt={img.alt || `Evidence ${idx + 1}`}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            unoptimized
+                          />
+                        )}
+                      </div>
+                      {img.caption && (
+                        <span className="font-mono text-[10px] text-white/60 line-clamp-1">
+                          {img.caption}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* TECHNICAL ANALYSIS & PROBLEM / SOLUTION */}
             {project.caseStudy && (
@@ -648,6 +693,32 @@ export function ProjectDetailModal({
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* Challenges & Learnings Grid */}
+                {(project.caseStudy.challenges || project.caseStudy.learnings) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    {project.caseStudy.challenges && (
+                      <div className="p-4 border border-white/10 bg-white/[0.02] flex flex-col gap-1.5">
+                        <span className="font-mono text-[0.6rem] tracking-[0.2em] text-[#FFAA00] uppercase font-bold">
+                          &gt;&gt; ENGINEERING_CHALLENGES:
+                        </span>
+                        <p className="font-sans text-xs sm:text-sm text-white/75 leading-relaxed">
+                          {project.caseStudy.challenges}
+                        </p>
+                      </div>
+                    )}
+                    {project.caseStudy.learnings && (
+                      <div className="p-4 border border-white/10 bg-white/[0.02] flex flex-col gap-1.5">
+                        <span className="font-mono text-[0.6rem] tracking-[0.2em] text-[#FFAA00] uppercase font-bold">
+                          &gt;&gt; KEY_LEARNINGS:
+                        </span>
+                        <p className="font-sans text-xs sm:text-sm text-white/75 leading-relaxed">
+                          {project.caseStudy.learnings}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 

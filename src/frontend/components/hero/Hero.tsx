@@ -2,15 +2,15 @@
 
 import React, { useEffect, useRef } from "react";
 import { FlashlightContent } from "@/frontend/components/flashlight";
-import { defaultHeroContent, HeroContent } from "@/frontend/lib/heroContent";
+import { HeroContent } from "@/frontend/lib/heroContent";
 import { HeroBackgroundAmbient, HeroBackgroundDiscovery } from "./HeroBackground";
 
 interface HeroProps {
-  content?: HeroContent;
+  content?: HeroContent | null;
   className?: string;
 }
 
-export function Hero({ content = defaultHeroContent, className = "" }: HeroProps) {
+export function Hero({ content, className = "" }: HeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const reticleRef = useRef<HTMLDivElement>(null);
   const coordRef = useRef<HTMLSpanElement>(null);
@@ -110,6 +110,30 @@ export function Hero({ content = defaultHeroContent, className = "" }: HeroProps
       return () => ctx.revert();
     });
   }, []);
+
+  // ── Null guard: no content from DB ──────────────────────────────────────────
+  if (!content) {
+    return (
+      <section
+        id="hero"
+        className={`relative min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-6 sm:px-10 lg:px-14 bg-[#080808] overflow-hidden ${className}`}
+        aria-label="Hero — Identity"
+      >
+        <HeroBackgroundAmbient />
+        <div className="relative z-10 flex flex-col items-center text-center gap-4 max-w-lg">
+          <div className="inline-flex items-center gap-2 px-4 py-2 border border-amber-500/40 bg-amber-500/[0.06] rounded-xs">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" aria-hidden="true" />
+            <span className="font-mono text-[0.65rem] tracking-[0.2em] text-amber-300 uppercase">
+              [ IDENTITY DATA UNAVAILABLE ]
+            </span>
+          </div>
+          <p className="font-mono text-xs text-white/40 tracking-wider">
+            Hero content not yet configured — add it via the admin panel.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section

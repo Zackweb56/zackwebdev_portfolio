@@ -7,7 +7,6 @@ import React, {
   useEffect,
 } from "react";
 import { Project } from "@/frontend/types/project";
-import { getAllProjects, getProjectBySlug } from "@/frontend/lib/projects/registry";
 import { ProjectGalleryCard } from "./ProjectGalleryCard";
 import { ProjectDetailModal } from "./ProjectDetailModal";
 import { playSound } from "@/frontend/lib/sound";
@@ -47,7 +46,7 @@ export function ProjectsSection({
   const dragStartX = useRef(0);
   const dragStartScroll = useRef(0);
 
-  const projects = initialProjects && initialProjects.length > 0 ? initialProjects : getAllProjects();
+  const projects = initialProjects ?? [];
 
   const handleOpenModal = useCallback((project: Project) => {
     setModalDirection(1);
@@ -55,12 +54,13 @@ export function ProjectsSection({
   }, []);
 
   const handleModalNavigate = useCallback((slug: string, direction: number) => {
-    const nextProject = getProjectBySlug(slug);
+    const nextProject = projects.find((p) => p.slug === slug);
     if (nextProject) {
       setModalDirection(direction);
       setSelectedProject(nextProject);
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects]);
 
 
   // ─── Scroll sync ────────────────────────────────────────────────────────────
@@ -294,9 +294,37 @@ export function ProjectsSection({
       </div>
 
       {/* ════════════════════════════════════════════════════════
+          EMPTY STATE — no projects in DB yet
+      ════════════════════════════════════════════════════════ */}
+      {projects.length === 0 && (
+        <div className="px-4 sm:px-6 lg:px-14 py-16 flex flex-col items-center gap-4">
+          <div
+            className="w-full max-w-2xl border border-amber-500/30 bg-amber-500/[0.04] px-6 py-8 flex flex-col items-center gap-3"
+            role="status"
+            aria-label="No projects available"
+          >
+            {/* Corner brackets */}
+            <span className="absolute -top-[1px] -left-[1px] w-3 h-3 border-t-2 border-l-2 border-amber-500/50" aria-hidden="true" />
+            <span className="absolute -top-[1px] -right-[1px] w-3 h-3 border-t-2 border-r-2 border-amber-500/50" aria-hidden="true" />
+            <span className="absolute -bottom-[1px] -left-[1px] w-3 h-3 border-b-2 border-l-2 border-amber-500/50" aria-hidden="true" />
+            <span className="absolute -bottom-[1px] -right-[1px] w-3 h-3 border-b-2 border-r-2 border-amber-500/50" aria-hidden="true" />
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" aria-hidden="true" />
+              <span className="font-mono text-[0.65rem] tracking-[0.2em] text-amber-300 uppercase">
+                [ NO RECORDS FOUND ]
+              </span>
+            </div>
+            <p className="font-mono text-xs text-white/40 tracking-wider text-center">
+              Projects archive is empty — add projects via the admin panel to populate this section.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════
           SLIDER VIEW — full-bleed horizontal ribbon
       ════════════════════════════════════════════════════════ */}
-      {viewMode === "slider" && (
+      {viewMode === "slider" && projects.length > 0 && (
         <div className="relative w-full">
           {/* Scrollable track — no max-width, bleeds to viewport */}
           <div

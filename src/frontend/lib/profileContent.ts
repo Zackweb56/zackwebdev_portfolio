@@ -45,6 +45,9 @@ export interface ProfileContent {
     label: string;
     href: string;
     downloadFilename: string;
+    cvFiles?: Record<string, string>;
+    isAvailable?: boolean;
+    locale?: string;
   };
 }
 

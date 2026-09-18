@@ -11,12 +11,14 @@ import {
   BarChart3,
   LogOut,
   X,
+  Globe,
 } from "lucide-react";
 import { authClient } from "@/backend/auth/client";
 
 export type AdminPrimaryNav =
   | "CV_DATA_CORE"
   | "SITE_CONTENT"
+  | "LANGUAGES"
   | "PROJECT_EVIDENCE"
   | "MEDIA_LIBRARY"
   | "SYSTEM_CONFIG"
@@ -38,8 +40,9 @@ interface AdminSidebarProps {
 }
 
 const PRIMARY_NAV_ITEMS: { id: AdminPrimaryNav; label: string; icon: React.ElementType }[] = [
-  { id: "CV_DATA_CORE", label: "CV_DATA_CORE", icon: FileText },
   { id: "SITE_CONTENT", label: "SITE_CONTENT", icon: LayoutGrid },
+  { id: "LANGUAGES", label: "LANGUAGES_I18N", icon: Globe },
+  { id: "CV_DATA_CORE", label: "CV_DATA_CORE", icon: FileText },
   { id: "PROJECT_EVIDENCE", label: "PROJECT_EVIDENCE", icon: FolderGit2 },
   { id: "MEDIA_LIBRARY", label: "MEDIA_LIBRARY", icon: ImageIcon },
   { id: "SYSTEM_CONFIG", label: "SYSTEM_CONFIG", icon: Sliders },

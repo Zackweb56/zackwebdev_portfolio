@@ -2,25 +2,47 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useActiveSection, SectionId } from "@/frontend/hooks/useActiveSection";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 interface NavItem {
   id: SectionId;
   code: string;
-  label: string;
   href: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: "profile", code: "01", label: "PROFILE", href: "#profile" },
-  { id: "projects", code: "02", label: "PROJECTS", href: "#projects" },
-  { id: "contact", code: "03", label: "CONTACT", href: "#contact" },
+  { id: "profile", code: "01", href: "#profile" },
+  { id: "projects", code: "02", href: "#projects" },
+  { id: "contact", code: "03", href: "#contact" },
 ];
+
+const NAV_LABELS: Record<string, Record<string, string>> = {
+  profile: { en: "PROFILE", fr: "PROFIL", de: "PROFIL", es: "PERFIL", it: "PROFILO", ar: "الملف" },
+  projects: { en: "PROJECTS", fr: "PROJETS", de: "PROJEKTE", es: "PROYECTOS", it: "PROGETTI", ar: "المشاريع" },
+  contact: { en: "CONTACT", fr: "CONTACT", de: "KONTAKT", es: "CONTACTO", it: "CONTATTO", ar: "اتصل بي" },
+};
 
 export function GlobalNavigation() {
   const activeSection = useActiveSection();
+  const searchParams = useSearchParams();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState("en");
   const headerRef = useRef<HTMLElement>(null);
+
+  // Sync current locale for localized nav labels
+  useEffect(() => {
+    const urlLang = searchParams?.get("lang");
+    if (urlLang) {
+      setCurrentLang(urlLang.toLowerCase());
+    } else {
+      const match = document.cookie.match(/(?:^|;\s*)portfolio_lang=([^;]*)/);
+      if (match && match[1]) {
+        setCurrentLang(match[1].toLowerCase());
+      }
+    }
+  }, [searchParams]);
 
   // ─── Force glass styles via CSSOM — bypasses all cascade/specificity issues ──
   useEffect(() => {
@@ -30,19 +52,6 @@ export function GlobalNavigation() {
     header.style.setProperty("background", "rgba(5, 5, 5, 0.45)", "important");
     header.style.setProperty("backdrop-filter", "blur(24px) saturate(180%)", "important");
     header.style.setProperty("-webkit-backdrop-filter", "blur(24px) saturate(180%)", "important");
-
-    // Diagnostic — check your browser console after load
-    console.log("[nav-header] computed backdrop-filter:", getComputedStyle(header).backdropFilter);
-
-    // Diagnostic — walk ancestors for anything breaking position:fixed
-    let el: HTMLElement | null = header.parentElement;
-    while (el) {
-      const t = getComputedStyle(el).transform;
-      if (t !== "none") {
-        console.warn("[nav-header] ancestor has transform, breaking fixed context:", el, t);
-      }
-      el = el.parentElement;
-    }
   }, []);
 
   useEffect(() => {
@@ -71,6 +80,12 @@ export function GlobalNavigation() {
     };
   }, [mobileMenuOpen]);
 
+  const getLabel = (id: string) => {
+    const map = NAV_LABELS[id];
+    if (!map) return id.toUpperCase();
+    return map[currentLang] || map.en || id.toUpperCase();
+  };
+
   return (
     <>
       <header ref={headerRef} className="nav-header">
@@ -90,37 +105,48 @@ export function GlobalNavigation() {
             />
           </a>
 
-          <nav className="hidden md:flex items-center gap-8" aria-label="Main Navigation">
-            {NAV_ITEMS.map((item) => {
-              const isActive = activeSection === item.id;
-              return (
-                <a
-                  key={item.id}
-                  href={item.href}
-                  className={`group relative flex items-center gap-2 font-mono text-xs tracking-[0.12em] transition-colors duration-200 py-1.5 px-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FFAA00] focus-visible:outline-offset-2 ${
-                    isActive ? "text-[#FFAA00] font-medium" : "text-white/40 hover:text-white/80"
-                  }`}
-                >
-                  <span
-                    className={`inline-block w-1.5 h-1.5 transition-all duration-200 ${
-                      isActive
-                        ? "bg-[#FFAA00] scale-100 opacity-100"
-                        : "bg-white/20 scale-0 opacity-0 group-hover:scale-75 group-hover:opacity-50"
+          {/* ── Desktop Navigation + Language Switcher at the end ── */}
+          <div className="hidden md:flex items-center gap-6">
+            <nav className="flex items-center gap-6" aria-label="Main Navigation">
+              {NAV_ITEMS.map((item) => {
+                const isActive = activeSection === item.id;
+                const label = getLabel(item.id);
+                return (
+                  <a
+                    key={item.id}
+                    href={item.href}
+                    className={`group relative flex items-center gap-2 font-mono text-xs tracking-[0.12em] transition-colors duration-200 py-1.5 px-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FFAA00] focus-visible:outline-offset-2 ${
+                      isActive ? "text-[#FFAA00] font-medium" : "text-white/40 hover:text-white/80"
                     }`}
-                  />
-                  <span className="text-[0.65rem] opacity-60">{item.code}</span>
-                  <span>/</span>
-                  <span>{item.label}</span>
-                </a>
-              );
-            })}
-          </nav>
+                  >
+                    <span
+                      className={`inline-block w-1.5 h-1.5 transition-all duration-200 ${
+                        isActive
+                          ? "bg-[#FFAA00] scale-100 opacity-100"
+                          : "bg-white/20 scale-0 opacity-0 group-hover:scale-75 group-hover:opacity-50"
+                      }`}
+                    />
+                    <span className="text-[0.65rem] opacity-60">{item.code}</span>
+                    <span>/</span>
+                    <span>{label}</span>
+                  </a>
+                );
+              })}
+            </nav>
 
-          <div className="flex md:hidden items-center">
+            {/* Language Switcher Dropdown at the End of Navigation */}
+            <div className="pl-3 border-l border-white/10 flex items-center">
+              <LanguageSwitcher />
+            </div>
+          </div>
+
+          {/* ── Mobile Controls (Language Switcher + Hamburger Toggle) ── */}
+          <div className="flex md:hidden items-center gap-2">
+            <LanguageSwitcher compact />
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="flex items-center gap-2 font-mono text-[0.7rem] tracking-[0.15em] text-white/70 hover:text-[#FFAA00] border border-white/10 hover:border-[#FFAA00]/40 px-3 py-1.5 rounded-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FFAA00]"
+              className="flex items-center gap-2 font-mono text-[0.7rem] tracking-[0.15em] text-white/70 hover:text-[#FFAA00] border border-white/10 hover:border-[#FFAA00]/40 px-3 py-1.5 rounded-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FFAA00] cursor-pointer"
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-menu-drawer"
               aria-label={mobileMenuOpen ? "Close System Navigation" : "Open System Navigation"}
@@ -131,32 +157,43 @@ export function GlobalNavigation() {
           </div>
         </div>
 
+        {/* ── Mobile Menu Drawer ── */}
         {mobileMenuOpen && (
           <div
             id="mobile-menu-drawer"
-            className="fixed inset-0 top-14 z-50 flex flex-col justify-between p-6 border-t border-white/10 md:hidden mobile-drawer"
+            className="fixed inset-0 top-14 z-50 flex flex-col justify-between p-6 border-t border-white/10 md:hidden mobile-drawer bg-[#050505]/95 backdrop-blur-xl"
           >
             <div className="flex flex-col gap-2">
-              <p className="font-mono text-[0.65rem] tracking-[0.2em] text-[#FFAA00] uppercase mb-4 opacity-70">
+              <p className="font-mono text-[0.65rem] tracking-[0.2em] text-[#FFAA00] uppercase mb-2 opacity-70">
                 CLASSIFIED SYSTEM // NAVIGATION INDEX
               </p>
-              <nav aria-label="Mobile Navigation" className="flex flex-col gap-4">
+
+              {/* Mobile Drawer Language Switcher Row */}
+              <div className="mb-4 pb-3 border-b border-white/10 flex items-center justify-between">
+                <span className="font-mono text-[0.68rem] tracking-[0.15em] text-white/50 uppercase">
+                  ACTIVE LOCALE:
+                </span>
+                <LanguageSwitcher />
+              </div>
+
+              <nav aria-label="Mobile Navigation" className="flex flex-col gap-3">
                 {NAV_ITEMS.map((item) => {
                   const isActive = activeSection === item.id;
+                  const label = getLabel(item.id);
                   return (
                     <a
                       key={item.id}
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center justify-between font-mono text-sm tracking-[0.15em] p-3 border border-white/5 rounded-sm transition-all ${
+                      className={`flex items-center justify-between font-mono text-sm tracking-[0.15em] p-3 border rounded-sm transition-all ${
                         isActive
                           ? "text-[#FFAA00] border-[#FFAA00]/40 bg-[#FFAA00]/5"
-                          : "text-white/70 hover:text-white hover:border-white/20"
+                          : "border-white/5 text-white/70 hover:text-white hover:border-white/20"
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-xs text-[#FFAA00]">{item.code}</span>
-                        <span>{item.label}</span>
+                        <span>{label}</span>
                       </div>
                       {isActive && (
                         <span className="font-mono text-[0.65rem] text-[#FFAA00] tracking-widest">
